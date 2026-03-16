@@ -20,7 +20,7 @@ type Order = {
   status: string;
   created_at: string;
   cart_items: CartItem[] | null;
-  discount_amount?: number;
+  discount_amount?: number | null;
   shipping_cost?: number;
 };
 

@@ -18,7 +18,7 @@ type Order = {
   created_at: string;
   cart_items: CartItem[] | null;
   coupon_code?: string | null;
-  discount_amount?: number;
+  discount_amount?: number | null;
   shipping_cost?: number;
 };
 

@@ -698,7 +698,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
                     Processing...
                   </span>
                 ) : (
-                  `ادفع {total} د.ل`
+                  `ادفع ${total} د.ل`
                 )}
               </button>
             </div>

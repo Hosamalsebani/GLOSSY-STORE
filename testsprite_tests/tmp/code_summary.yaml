@@ -1,53 +1,70 @@
 version: "2"
 type: frontend
 tech_stack:
-  - TypeScript
-  - Next.js
-  - TailwindCSS
-  - Supabase
-  - Lucide React
+  - typescript
+  - next.js
+  - tailwindcss
+  - supabase
 routes:
   - path: /login
     file: src/app/[locale]/login/page.tsx
     auth_required: false
-    description: User sign-in page
+    description: User login page
   - path: /register
     file: src/app/[locale]/register/page.tsx
     auth_required: false
-    description: User sign-up page
+    description: User registration page
+  - path: /shop
+    file: src/app/[locale]/shop/page.tsx
+    auth_required: false
+    description: Product catalog page
+  - path: /shop/[id]
+    file: src/app/[locale]/shop/[id]/page.tsx
+    auth_required: false
+    description: Product details page
+  - path: /cart
+    file: src/app/[locale]/cart/page.tsx
+    auth_required: false
+    description: Shopping cart page
+  - path: /checkout
+    file: src/app/[locale]/checkout/page.tsx
+    auth_required: true
+    description: Checkout and payment page
   - path: /account
     file: src/app/[locale]/account/page.tsx
     auth_required: true
-    description: User account overview
-  - path: /account/loyalty
-    file: src/app/[locale]/account/loyalty/page.tsx
+    description: User account dashboard
+  - path: /admin
+    file: src/app/[locale]/admin/page.tsx
     auth_required: true
-    description: Loyalty points and rewards page
+    description: Admin dashboard
 features:
-  - name: User Authentication
-    description: Sign in and Sign up flows for users
+  - name: User Login
+    description: Login with email and password credentials
     files:
       - src/app/[locale]/login/page.tsx
-      - src/app/[locale]/register/page.tsx
     entry_route: /login
     user_interactions:
-      - Fill email and password in login form
-      - Click Sign In button
-      - Fill name, email, and password in register form
-      - Click Sign Up button
+      - Fill email input field
+      - Fill password input field
+      - Click Login button to submit
     api_calls:
       - method: POST
-        endpoint: /auth/v1/token
+        endpoint: /api/auth/login
     auth_required: false
-  - name: Account Settings
-    description: User profile and privacy management
+  - name: Purchasing an Item
+    description: Add item to cart and checkout
     files:
-      - src/app/[locale]/account/page.tsx
-      - src/components/account/modals/PrivacySettings.tsx
-    entry_route: /account
+      - src/app/[locale]/shop/page.tsx
+      - src/app/[locale]/cart/page.tsx
+      - src/app/[locale]/checkout/page.tsx
+    entry_route: /shop
     user_interactions:
-      - Click on privacy settings
-      - Toggle cookies or tracking preferences
-      - Save settings
+      - Browse shop and click Add to Cart
+      - Navigate to Cart
+      - Click proceed to Checkout
+      - Fill shipping details
+      - Complete order
+    api_calls: []
     auth_required: true
 known_limitations: []
