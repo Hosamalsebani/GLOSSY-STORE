@@ -5,7 +5,7 @@ import { updateSession } from './utils/supabase/middleware';
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Determine locale early for route checks
