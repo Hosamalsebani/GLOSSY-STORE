@@ -1,0 +1,53 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - Next.js
+  - TailwindCSS
+  - Supabase
+  - Lucide React
+routes:
+  - path: /login
+    file: src/app/[locale]/login/page.tsx
+    auth_required: false
+    description: User sign-in page
+  - path: /register
+    file: src/app/[locale]/register/page.tsx
+    auth_required: false
+    description: User sign-up page
+  - path: /account
+    file: src/app/[locale]/account/page.tsx
+    auth_required: true
+    description: User account overview
+  - path: /account/loyalty
+    file: src/app/[locale]/account/loyalty/page.tsx
+    auth_required: true
+    description: Loyalty points and rewards page
+features:
+  - name: User Authentication
+    description: Sign in and Sign up flows for users
+    files:
+      - src/app/[locale]/login/page.tsx
+      - src/app/[locale]/register/page.tsx
+    entry_route: /login
+    user_interactions:
+      - Fill email and password in login form
+      - Click Sign In button
+      - Fill name, email, and password in register form
+      - Click Sign Up button
+    api_calls:
+      - method: POST
+        endpoint: /auth/v1/token
+    auth_required: false
+  - name: Account Settings
+    description: User profile and privacy management
+    files:
+      - src/app/[locale]/account/page.tsx
+      - src/components/account/modals/PrivacySettings.tsx
+    entry_route: /account
+    user_interactions:
+      - Click on privacy settings
+      - Toggle cookies or tracking preferences
+      - Save settings
+    auth_required: true
+known_limitations: []

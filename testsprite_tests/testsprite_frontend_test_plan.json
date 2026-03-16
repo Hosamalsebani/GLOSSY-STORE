@@ -1,0 +1,604 @@
+[
+  {
+    "id": "TC001",
+    "title": "Successful sign up redirects to Account overview",
+    "description": "Verifies a new user can register with valid details and is redirected to the account overview page.",
+    "category": "User Authentication (Sign Up)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Sign Up\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Test User\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"testsprite.user+signup1@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Str0ngPass!234\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign Up\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Account\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Weak password is blocked by client-side validation",
+    "description": "Verifies a weak password triggers a visible validation message and prevents account redirect.",
+    "category": "User Authentication (Sign Up)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Sign Up\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Weak Password\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"testsprite.user+weakpass@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"12345\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign Up\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"password\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Missing required fields shows required-field errors",
+    "description": "Verifies the form shows required field validation and does not submit when mandatory fields are empty.",
+    "category": "User Authentication (Sign Up)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Sign Up\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign Up\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"required\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Invalid email format shows validation error",
+    "description": "Verifies an invalid email format triggers a visible validation message and prevents redirect.",
+    "category": "User Authentication (Sign Up)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Sign Up\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Bad Email\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"not-an-email\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Str0ngPass!234\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign Up\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"email\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Save privacy settings successfully and see confirmation",
+    "description": "Verifies an authenticated user can change privacy preferences and successfully save them with a visible confirmation.",
+    "category": "Account Settings (Privacy Settings)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Privacy settings\""
+      },
+      {
+        "type": "action",
+        "description": "Toggle the cookies preference"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Save settings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Settings saved\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Privacy settings persist after saving and revisiting privacy settings",
+    "description": "Verifies that saved privacy preferences remain updated when the user reopens the privacy settings.",
+    "category": "Account Settings (Privacy Settings)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Privacy settings\""
+      },
+      {
+        "type": "action",
+        "description": "Toggle the tracking preference"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Save settings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Settings saved\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Account\" or \"Back\" to return to the account overview"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Privacy settings\" again"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the tracking preference toggle shows the updated state"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Cancel/leave privacy settings without saving does not show a save confirmation",
+    "description": "Verifies that changing a toggle without saving does not produce a success confirmation message.",
+    "category": "Account Settings (Privacy Settings)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Privacy settings\""
+      },
+      {
+        "type": "action",
+        "description": "Toggle the cookies preference"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Account\" or \"Back\" to return to the account overview"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Settings saved\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Open privacy settings from account overview (page loads and controls visible)",
+    "description": "Verifies the privacy settings section/page can be opened and key controls are visible for an authenticated user.",
+    "category": "Account Settings (Privacy Settings)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Privacy settings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Privacy settings\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Cookies\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Tracking\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Save settings\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "View loyalty page shows points balance and rewards list",
+    "description": "Verifies an authenticated user can open the loyalty page and see a visible points balance and a rewards list.",
+    "category": "Loyalty Points & Rewards",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /account/loyalty"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Loyalty\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Points\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Redeem a reward successfully and see confirmation",
+    "description": "Verifies an authenticated user can redeem an available reward and sees a success message.",
+    "category": "Loyalty Points & Rewards",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /account/loyalty"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Redeem\" button for the first available reward"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Confirm\" button"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Successful redemption shows success message on loyalty page",
+    "description": "Verifies that after confirming redemption, a visible success message appears on the loyalty page.",
+    "category": "Loyalty Points & Rewards",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /account/loyalty"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Redeem\" button for the first available reward"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Confirm\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Success\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Cancel out of redemption confirmation leaves user on loyalty page",
+    "description": "Verifies that cancelling the redemption confirmation does not complete redemption and keeps the user on the loyalty page.",
+    "category": "Loyalty Points & Rewards",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /account/loyalty"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Redeem\" button for the first available reward"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Cancel\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account/loyalty\""
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Attempt to redeem reward with insufficient points shows error",
+    "description": "Verifies that redeeming a reward that costs more than the available points shows an insufficient-points error message.",
+    "category": "Loyalty Points & Rewards",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /account/loyalty"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Redeem\" button for a reward that indicates it requires more points than currently available"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"insufficient\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Loyalty page remains usable after refresh-like re-navigation within session",
+    "description": "Verifies that within an authenticated session, re-opening the loyalty page still shows key loyalty UI (balance/rewards).",
+    "category": "Loyalty Points & Rewards",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/account\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /account/loyalty"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Rewards\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Points\" is visible"
+      }
+    ]
+  }
+]

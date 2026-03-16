@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Product Manager Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --slate-depth: #0f172a;
+            --slate-main: #1e293b;
+            --gold-primary: #D4AF37;
+            --gold-light: #F1D37E;
+            --rose-gold: #B76E79;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--slate-depth);
+            color: var(--text-light);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 280px;
+            background-color: var(--slate-main);
+            border-right: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 2.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: fixed;
+            height: 100vh;
+            transition: var(--transition);
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--gold-primary);
+            text-align: center;
+            margin-bottom: 2rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+            padding-bottom: 1rem;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 1rem 1.2rem;
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background-color: rgba(212, 175, 55, 0.1);
+            color: var(--gold-primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 3rem;
+            width: calc(100% - 280px);
+            max-width: 1200px;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+        }
+
+        /* Tool Cards & Containers */
+        .tool-panel {
+            display: none;
+            background: var(--slate-main);
+            padding: 2.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tool-panel.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form Controls */
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.6rem; font-size: 0.85rem; color: var(--gold-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        input, select, textarea {
+            width: 100%;
+            background: var(--slate-depth);
+            border: 1px solid #334155;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition);
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--gold-primary); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2); }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold-primary), #B8860B);
+            color: var(--slate-depth);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3); }
+
+        /* Feature Specifics */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        
+        .result-box {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            border-left: 4px solid var(--gold-primary);
+            min-height: 100px;
+        }
+
+        /* Profit Calc Display */
+        .calc-display {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 2rem;
+            padding: 2rem;
+            background: var(--slate-depth);
+            border-radius: 12px;
+        }
+        .display-item { text-align: center; }
+        .display-item span { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .display-item strong { font-size: 1.5rem; }
+
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar { width: 80px; padding: 1.5rem 0.5rem; }
+            .logo, .nav-btn span { display: none; }
+            .nav-btn { justify-content: center; }
+            .main-content { margin-left: 80px; width: calc(100% - 80px); padding: 1.5rem; }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">LUXURY ADMIN</div>
+        <button class="nav-btn active" onclick="showTab('tab-bulk')">
+            <span>Bulk Price Editor</span>
+        </button>
+        <button class="nav-btn" onclick="showTab('tab-ai')">
+            <span>AI Description</span>
+        </button>
+        <button class="nav-btn" onclick="showTab('tab-profit')">
+            <span>Profit Calculator</span>
+        </button>
+    </aside>
+
+    <main class="main-content">
+        <!-- Dashboard Header -->
+        <header class="page-header">
+            <h1>Product Intelligence</h1>
+            <p>Advanced tools for the modern e-commerce entrepreneur.</p>
+        </header>
+
+        <!-- Tool 1: Bulk Price Editor -->
+        <section id="tab-bulk" class="tool-panel active">
+            <h2 style="margin-bottom: 1.5rem; color: var(--gold-primary);">Bulk Price Optimization</h2>
+            <div class="form-group">
+                <label>Select Category</label>
+                <select id="bulk-category">
+                    <option>All Products</option>
+                    <option>Perfumes</option>
+                    <option>Makeup</option>
+                    <option>Skin Care</option>
+                </select>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Value Change</label>
+                    <input type="number" id="bulk-value" placeholder="10">
+                </div>
+                <div class="form-group">
+                    <label>Adjustment Type</label>
+                    <select id="bulk-type">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed Amount ($)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2">
+                <button class="btn-gold" style="background: #ef4444; color: white;" onclick="alert('Prices Decreased Successfully')">Decrease Prices</button>
+                <button class="btn-gold" onclick="alert('Prices Increased Successfully')">Increase Prices</button>
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">* This action will affect all products in the selected category instantly.</p>
+        </section>
+
+        <!-- Tool 2: AI Description Generator -->
+        <section id="tab-ai" class="tool-panel">
+            <h2 style="margin-bottom: 1.5rem; color: var(--gold-primary);">AI Product Copywriter</h2>
+            <div class="form-group">
+                <label>Product Keywords</label>
+                <textarea id="ai-keywords" rows="4" placeholder="e.g., Luxury Oud, Midnight Rose, Long-lasting 12h, Velvet Finish..."></textarea>
+            </div>
+            <button class="btn-gold" id="ai-btn" onclick="generateAI()">Generate High-End Description</button>
+            
+            <div class="result-box">
+                <label>Generated Copy</label>
+                <div id="ai-result" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted);">
+                    Enter keywords and click generate to see the magic...
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 3: Profit Calculator -->
+        <section id="tab-profit" class="tool-panel">
+            <h2 style="margin-bottom: 1.5rem; color: var(--gold-primary);">Real-time Profit Analytics</h2>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Cost Price ($)</label>
+                    <input type="number" id="cost-price" oninput="calcProfit()" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Selling Price ($)</label>
+                    <input type="number" id="selling-price" oninput="calcProfit()" placeholder="0.00">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>VAT / Tax (%)</label>
+                <input type="number" id="tax-rate" oninput="calcProfit()" value="15">
+            </div>
+
+            <div class="calc-display">
+                <div class="display-item">
+                    <span>Net Profit</span>
+                    <strong id="net-profit">$0.00</strong>
+                </div>
+                <div class="display-item">
+                    <span>Profit Margin</span>
+                    <strong id="profit-margin">0%</strong>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Tab Navigation
+        function showTab(tabId) {
+            document.querySelectorAll('.tool-panel').forEach(panel => panel.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // AI Generation Simulation
+        function generateAI() {
+            const btn = document.getElementById('ai-btn');
+            const result = document.getElementById('ai-result');
+            const keywords = document.getElementById('ai-keywords').value;
+
+            if(!keywords) {
+                alert("Please enter some keywords first.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = 'AI thinking<span class="loading-dots"></span>';
+            result.style.opacity = '0.5';
+
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = 'Generate High-End Description';
+                result.style.opacity = '1';
+                result.innerHTML = `<strong>Experience Ultimate Luxury:</strong> Indulge in the essence of <em>${keywords.split(',')[0] || 'elegance'}</em>. Meticulously crafted for those who demand sophistication, this masterpiece offers a sensory journey like no other. With its long-lasting allure and premium finish, it is the definitive choice for the modern connoisseur.`;
+            }, 2000);
+        }
+
+        // Real-time Profit Calculation
+        function calcProfit() {
+            const cost = parseFloat(document.getElementById('cost-price').value) || 0;
+            const sell = parseFloat(document.getElementById('selling-price').value) || 0;
+            const tax = parseFloat(document.getElementById('tax-rate').value) || 0;
+
+            const sellingAfterTax = sell / (1 + (tax/100));
+            const netProfit = sellingAfterTax - cost;
+            const margin = sell > 0 ? (netProfit / sell) * 100 : 0;
+
+            const profitEl = document.getElementById('net-profit');
+            const marginEl = document.getElementById('profit-margin');
+
+            profitEl.innerText = `$${netProfit.toFixed(2)}`;
+            marginEl.innerText = `${margin.toFixed(1)}%`;
+
+            if(netProfit > 0) {
+                profitEl.style.color = '#22c55e';
+                marginEl.style.color = '#22c55e';
+            } else if(netProfit < 0) {
+                profitEl.style.color = '#ef4444';
+                marginEl.style.color = '#ef4444';
+            } else {
+                profitEl.style.color = 'white';
+                marginEl.style.color = 'white';
+            }
+        }
+    </script>
+</body>
+</html>

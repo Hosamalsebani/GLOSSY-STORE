@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@theme {
+  --color-rose-gold: #b76e79;
+  --color-blush-pink: #f4c2c2;
+  --color-soft-beige: #fefcfb;
+  --color-luxury-black: #1a1a1a;
+  --color-primary-luxury: #ee2b4b;
+  --color-gold-luxury: #d4af37;
+  --color-blush-luxury: #fff0f3;
+  --color-background-luxury-light: #f8f6f6;
+  --color-background-luxury-dark: #221013;
+  --color-background: var(--color-soft-beige);
+  --color-foreground: var(--color-luxury-black);
+  
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Manrope", sans-serif;
+}
+
+:root {
+  --background: #fefcfb;
+  --foreground: #1a1a1a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1a1a1a;
+    --foreground: #fefcfb;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+}
+
+/* Logo Animation */
+@keyframes logo-shimmer {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(5deg) scale(1.08);
+  }
+  50% {
+    transform: rotate(0deg) scale(1.03);
+  }
+  75% {
+    transform: rotate(-5deg) scale(1.08);
+  }
+}
+
+.animate-logo {
+  animation: logo-shimmer 4s ease-in-out infinite;
+}
+
+.animate-logo:hover {
+  animation: logo-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Premium Discount Sticker */
+@keyframes sticker-float {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-5px) rotate(1deg); }
+}
+
+.discount-sticker {
+  position: relative;
+  background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px 15px 4px 15px;
+  font-weight: 800;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 15px rgba(255, 75, 43, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transform: rotate(-3deg);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 10;
+  animation: sticker-float 3s ease-in-out infinite;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.discount-sticker::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+@layer utilities {
+  .gold-gradient-text {
+    color: #734d0c; /* High-contrast fallback color */
+    display: inline-block;
+    position: relative;
+  }
+
+  @supports (-webkit-background-clip: text) or (background-clip: text) {
+    .gold-gradient-text {
+      background: linear-gradient(to right, #734d0c, #b8860b, #996515, #b8860b, #734d0c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+  .gold-border {
+    border: 1px solid #d4af37;
+  }
+  .pink-glow {
+    box-shadow: 0 0 20px rgba(244, 194, 194, 0.3);
+  }
+  .gold-luxury-gradient {
+    background: linear-gradient(135deg, #d4af37 0%, #fcf6ba 50%, #d4af37 100%);
+  }
+  .luxury-gradient-bg {
+    background: linear-gradient(135deg, #fff0f3 0%, #fefcfb 100%);
+  }
+  .luxury-price-fog {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 14px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 100px;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(244, 194, 194, 0.2);
+    isolation: isolate; /* Create a new stacking context to prevent clipping issues */
+  }
+  .luxury-price-fog::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    background: radial-gradient(circle, rgba(244, 194, 194, 0.4) 0%, rgba(244, 194, 194, 0) 70%);
+    filter: blur(10px);
+    border-radius: inherit;
+    z-index: -1;
+  }
+}

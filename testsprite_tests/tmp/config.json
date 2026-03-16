@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "loginUser": "admin@glossy.com",
+  "loginPassword": "123123",
+  "executionArgs": {
+    "projectName": "reolink",
+    "projectPath": "c:\\Users\\dell\\Pictures\\reolink",
+    "testIds": [],
+    "additionalInstruction": "Test all forms in the application. Major focus on Sign In and Sign Up. Check for validation errors, successful submissions, and redirects. Ensure the local server at http://localhost:3000 is used. Proceed with execution until a report is generated.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-1c0Lw5AMkKdXdGv_CqkKog1c9sVOPv482-a7LvInrU12zo5vQSP1DOj6dxOLcXI8o4JoT06_sg7GvrZeHgR-tLLkIZZAiQEo7ZIm5_bYXg9C8ssZfRgSTXGijxybmK-oXCU"
+    }
+  }
+}
