@@ -85,20 +85,10 @@ export async function proxy(request: NextRequest) {
     return intlResponse;
   }
 
-  // For all non-protected routes, just run intl middleware + session refresh
-  let finalResponse;
-  try {
-    const { supabaseResponse } = await updateSession(request);
-    const intlResponse = intlMiddleware(request);
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      intlResponse.cookies.set(cookie.name, cookie.value, { ...cookie });
-    });
-    finalResponse = intlResponse;
-  } catch (error) {
-    console.error('Session update error in public route:', error);
-    finalResponse = intlMiddleware(request);
-  }
-  return finalResponse;
+  // For all non-protected routes, just run intl middleware.
+  // Skipping updateSession here significantly improves performance for public pages (Home, Shop, Category).
+  // The client-side Supabase instance in the Header will handle ephemeral session state for the UI.
+  return intlMiddleware(request);
 }
 
 export const config = {
