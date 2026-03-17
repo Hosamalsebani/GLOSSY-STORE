@@ -123,9 +123,9 @@ export default function Header() {
             <div className="flex items-center gap-2 md:gap-5">
               <LocaleSwitcher />
 
-              <button aria-label="Search" className="text-white hover:text-white/70 transition-colors hidden md:block">
+              <Link href="/shop" aria-label="Search" className="text-white hover:text-white/70 transition-colors hidden md:block">
                 <Search size={22} strokeWidth={1.5} />
-              </button>
+              </Link>
               <Link href="/account" className="text-white hover:text-white/70 transition-colors hidden md:block">
                 <User size={22} strokeWidth={1.5} />
               </Link>
@@ -169,7 +169,7 @@ export default function Header() {
           <Link href="/" className="flex flex-col items-center justify-center p-2 text-[var(--color-rose-gold)]" aria-label={t('home')}>
             <Home size={24} strokeWidth={1.8} />
           </Link>
-          <Link href="/category/makeup" className="flex flex-col items-center justify-center p-2 text-gray-400 hover:text-[var(--color-rose-gold)] transition-colors" aria-label={t('makeup')}>
+          <Link href="/shop" className="flex flex-col items-center justify-center p-2 text-gray-400 hover:text-[var(--color-rose-gold)] transition-colors" aria-label="Shop">
             <Search size={24} strokeWidth={1.8} />
           </Link>
           <Link href="/tips" className="flex flex-col items-center justify-center p-2 text-gray-400 hover:text-[var(--color-rose-gold)] transition-colors" aria-label="Beauty Tips">
