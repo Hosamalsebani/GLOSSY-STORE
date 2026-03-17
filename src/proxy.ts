@@ -29,10 +29,21 @@ export async function proxy(request: NextRequest) {
 
   if (isProtectedRoute) {
     // 1. Refresh Supabase session and get user
-    const { supabase, user, supabaseResponse } = await updateSession(request);
+    let supabase, user, supabaseResponse;
+    try {
+      const result = await updateSession(request);
+      supabase = result.supabase;
+      user = result.user;
+      supabaseResponse = result.supabaseResponse;
+    } catch (error) {
+      console.error('Session update error in protected route:', error);
+      // Fallback: assume not authenticated instead of crashing
+      user = null;
+      supabaseResponse = NextResponse.next({ request });
+    }
 
-    // 2. If not authenticated, redirect to login
-    if (!user) {
+    // 2. If not authenticated or supabase client failed, redirect to login
+    if (!user || !supabase) {
       const loginUrl = new URL(`/${locale}/login`, request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
@@ -75,12 +86,19 @@ export async function proxy(request: NextRequest) {
   }
 
   // For all non-protected routes, just run intl middleware + session refresh
-  const { supabaseResponse } = await updateSession(request);
-  const intlResponse = intlMiddleware(request);
-  supabaseResponse.cookies.getAll().forEach((cookie) => {
-    intlResponse.cookies.set(cookie.name, cookie.value, { ...cookie });
-  });
-  return intlResponse;
+  let finalResponse;
+  try {
+    const { supabaseResponse } = await updateSession(request);
+    const intlResponse = intlMiddleware(request);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      intlResponse.cookies.set(cookie.name, cookie.value, { ...cookie });
+    });
+    finalResponse = intlResponse;
+  } catch (error) {
+    console.error('Session update error in public route:', error);
+    finalResponse = intlMiddleware(request);
+  }
+  return finalResponse;
 }
 
 export const config = {

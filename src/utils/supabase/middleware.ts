@@ -29,11 +29,20 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: DO NOT remove this line.
-  // Refreshing the auth token keeps the user session alive.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Guard: Do not attempt to refresh session if using placeholder URL
+  let user = null;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    return { supabase, user, supabaseResponse };
+  }
+
+  try {
+    // IMPORTANT: DO NOT remove this line.
+    // Refreshing the auth token keeps the user session alive.
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    user = authUser;
+  } catch (error) {
+    console.error('Supabase middleware session refresh error:', error);
+  }
 
   return { supabase, user, supabaseResponse }
 }

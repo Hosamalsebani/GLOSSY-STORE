@@ -16,10 +16,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const t = await getTranslations({ locale, namespace: 'HomePage' });
   const supabase = await createClient();
 
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name_en', { ascending: true });
+  let categories = [];
+  try {
+    const { data } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name_en', { ascending: true });
+    categories = data || [];
+  } catch (error) {
+    console.error('Failed to fetch categories:', error);
+  }
 
   return (
     <div className="flex flex-col w-full">
