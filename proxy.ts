@@ -8,6 +8,17 @@ const intlMiddleware = createIntlMiddleware(routing);
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // QUICK EXIT for static assets, API, and internal Next.js routes
+  // This prevents the middleware from interfering with chunk loading
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.includes('/_vercel') ||
+    pathname.includes('.')
+  ) {
+    return NextResponse.next();
+  }
+
   // Determine locale early for route checks
   const locale = pathname.match(/^\/(en|ar)\//)?.[1] || 'en';
 
@@ -74,8 +85,16 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next|_vercel|.*\\..*).*)',
+    // Match all request paths except for the ones starting with:
+    // - api (API routes)
+    // - _next/static (static files)
+    // - _next/image (image optimization files)
+    // - favicon.ico (favicon file)
+    // - all files with an extension (e.g. .css, .js, .png)
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
+    // Always run for the root
     '/',
-    '/(ar|en)/:path*'
+    // Run for locale-prefixed routes, but still allow Next.js to skip assets
+    '/(ar|en)/((?!_next|api|.*\\..*).*)'
   ]
 };
