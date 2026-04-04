@@ -107,7 +107,7 @@ export default function ReviewList({ productId }: ReviewListProps) {
           </div>
           {review.comment && (
             <p className="text-gray-600 leading-relaxed italic">
-              "{review.comment}"
+              &ldquo;{review.comment}&rdquo;
             </p>
           )}
         </div>

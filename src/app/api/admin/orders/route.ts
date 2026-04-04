@@ -12,13 +12,7 @@ export async function GET() {
     const { data: adminData } = await supabase.from('admins').select('id').eq('email', user.email).single();
     if (!adminData) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    // Use service role to bypass RLS
-    const adminSupabase = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_KEY!
-    );
-
-    const { data: orders, error } = await adminSupabase
+    const { data: orders, error } = await supabase
       .from('orders')
       .select(`
         id,

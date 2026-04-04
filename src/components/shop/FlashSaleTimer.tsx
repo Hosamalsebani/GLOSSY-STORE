@@ -10,7 +10,6 @@ interface FlashSaleTimerProps {
 }
 
 export default function FlashSaleTimer({ endDate, onExpire, compact = false }: FlashSaleTimerProps) {
-  const [mounted, setMounted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<{
     hours: number;
     minutes: number;
@@ -19,7 +18,6 @@ export default function FlashSaleTimer({ endDate, onExpire, compact = false }: F
   }>({ hours: 0, minutes: 0, seconds: 0, expired: false });
 
   useEffect(() => {
-    setMounted(true);
     const calculateTimeLeft = () => {
       const difference = +new Date(endDate) - +new Date();
       

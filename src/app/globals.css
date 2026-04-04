@@ -3,23 +3,32 @@
 @theme {
   --color-rose-gold: #b76e79;
   --color-blush-pink: #f4c2c2;
-  --color-soft-beige: #fefcfb;
+  --color-soft-beige: #ffffff;
   --color-luxury-black: #1a1a1a;
   --color-primary-luxury: #ee2b4b;
   --color-gold-luxury: #d4af37;
   --color-blush-luxury: #fff0f3;
+  --color-pastel-peach: #ffd6ba;
+  --color-sage-green: #cad2c5;
+  --color-warm-cream: #f9f7f2;
   --color-background-luxury-light: #f8f6f6;
   --color-background-luxury-dark: #221013;
-  --color-background: var(--color-soft-beige);
+  --color-background: #ffffff;
   --color-foreground: var(--color-luxury-black);
   
-  --font-serif: "Playfair Display", serif;
-  --font-sans: "Inter", sans-serif;
-  --font-display: "Manrope", sans-serif;
+  --font-serif: "Tajawal", "Cairo", serif;
+  --font-sans: "Tajawal", "Cairo", sans-serif;
+  --font-display: "Tajawal", "Cairo", sans-serif;
+  --font-cairo: "Cairo", sans-serif;
+  --font-tajawal: "Tajawal", sans-serif;
+}
+
+.font-arabic {
+  font-family: 'Tajawal', sans-serif !important;
 }
 
 :root {
-  --background: #fefcfb;
+  --background: #ffffff;
   --foreground: #1a1a1a;
 }
 
@@ -28,6 +37,13 @@
     --background: #1a1a1a;
     --foreground: #fefcfb;
   }
+}
+
+.flex-col.gap-0 > div,
+.flex-col.gap-0 > section {
+  margin-bottom: 0px !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
 }
 
 body {

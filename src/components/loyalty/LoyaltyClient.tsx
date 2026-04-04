@@ -123,7 +123,7 @@ export default function LoyaltyClient({ locale }: LoyaltyClientProps) {
         if (newHistory) setHistory(newHistory);
       }
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Redemption error:', error);
     } finally {
       setRedeeming(null);

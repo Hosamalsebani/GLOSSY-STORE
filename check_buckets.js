@@ -1,4 +1,5 @@
 
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config({ path: '.env.local' });
 
@@ -17,7 +18,7 @@ async function checkBuckets() {
   
   if (!data.find(b => b.name === 'invoices')) {
     console.log('Creating invoices bucket...');
-    const { data: newBucket, error: createError } = await supabase.storage.createBucket('invoices', {
+    const { error: createError } = await supabase.storage.createBucket('invoices', {
       public: true,
       allowedMimeTypes: ['application/pdf'],
       fileSizeLimit: 5242880 // 5MB

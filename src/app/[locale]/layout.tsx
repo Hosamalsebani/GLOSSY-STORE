@@ -9,8 +9,10 @@ import Footer from '@/components/layout/Footer';
 import AuthSync from '@/components/AuthSync';
 import AccessDeniedBanner from '@/components/AccessDeniedBanner';
 import GiftPopup from '@/components/ui/GiftPopup';
+import RewardsSystem from '@/components/rewards/RewardsSystem';
 import WhatsAppButton from '@/components/ui/WhatsAppButton';
 import FlashSaleBar from '@/components/ui/FlashSaleBar';
+import PageWrapper from '@/components/layout/PageWrapper';
 import '../globals.css';
 
 export async function generateMetadata({
@@ -50,21 +52,23 @@ export default async function LocaleLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@200;300;400;500;700;800;900&family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=Barlow:wght@600;700;800;900&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
       <body className="flex flex-col min-h-screen">
         <NextIntlClientProvider messages={messages} locale={locale}>
-          <FlashSaleBar />
           <AuthSync />
           <Suspense fallback={null}>
             <AccessDeniedBanner />
           </Suspense>
           <GiftPopup />
+          <RewardsSystem />
           <Header />
-          <main className="flex-grow">
-            {children}
-          </main>
+          <PageWrapper>
+            <main className="flex-grow">
+              {children}
+            </main>
+          </PageWrapper>
           <Footer />
           <WhatsAppButton />
         </NextIntlClientProvider>

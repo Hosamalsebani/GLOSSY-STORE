@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Package, Heart, ArrowRight, Loader2, Search, CheckCircle2, Truck, Clock, AlertCircle, Camera, User, LogOut, Wallet, Star, Settings, MapPin, Trophy } from 'lucide-react';
+import { Package, ArrowRight, Loader2, CheckCircle2, Truck, Clock, AlertCircle, Wallet, Star, Trophy } from 'lucide-react';
+import Image from 'next/image';
 import { Link, useRouter } from '@/i18n/routing';
 import { useAppStore } from '@/store';
 import { createClient } from '@/utils/supabase/client';
@@ -30,7 +31,7 @@ export default function AccountOverviewPage() {
   const [loyaltyPoints, setLoyaltyPoints] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [trackingId, setTrackingId] = useState('');
-  const [trackingResult, setTrackingResult] = useState<any>(null);
+  const [trackingResult, setTrackingResult] = useState<RecentOrder | null>(null);
   const [trackingLoading, setTrackingLoading] = useState(false);
   const [trackingError, setTrackingError] = useState('');
   
@@ -149,8 +150,9 @@ export default function AccountOverviewPage() {
 
       await supabase.from('users').update({ avatar_url: publicUrl }).eq('id', authUser.id);
       setAvatarUrl(publicUrl);
-    } catch (error: any) {
-      console.error('Error uploading avatar:', error.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error uploading avatar:', message);
       alert('Error uploading image. Please ensure avatars bucket exists and is public.');
     } finally {
       setUploadingAvatar(false);
@@ -194,7 +196,7 @@ export default function AccountOverviewPage() {
           <div className="pink-glow gold-border rounded-full p-1 bg-white relative">
             <div className="relative aspect-square rounded-full h-32 w-32 border-4 border-white overflow-hidden bg-slate-50 flex items-center justify-center">
               {avatarUrl ? (
-                <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                <Image src={avatarUrl} alt="Profile" fill className="object-cover" />
               ) : (
                 <span className="text-4xl font-bold text-slate-300">{initial}</span>
               )}
@@ -211,7 +213,7 @@ export default function AccountOverviewPage() {
             className="absolute bottom-1 right-1 bg-gold-luxury rounded-full p-1.5 border-2 border-white text-white shadow-lg hover:scale-110 transition-all cursor-pointer"
             title="Edit Profile"
           >
-            <span className="material-symbols-outlined text-xs block" style={{ fontVariationSettings: "'FILL' 1" }}>edit</span>
+            <span className="material-symbols-outlined text-xs block [font-variation-settings:'FILL'_1]">edit</span>
           </button>
           <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleAvatarUpload} title="Upload Profile Picture" />
         </div>

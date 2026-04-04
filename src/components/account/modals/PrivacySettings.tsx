@@ -34,9 +34,10 @@ export default function PrivacySettings() {
       alert(t('passwordUpdated'));
       setPassword('');
       setConfirmPassword('');
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('preferencesError');
       console.error('Error updating password:', error);
-      alert(error.message || t('preferencesError'));
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -63,9 +64,10 @@ export default function PrivacySettings() {
         await supabase.auth.signOut();
         window.location.href = '/';
       }
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('preferencesError');
       console.error('Error deleting account:', error);
-      alert(error.message || t('preferencesError'));
+      alert(message);
     } finally {
       setLoading(false);
     }

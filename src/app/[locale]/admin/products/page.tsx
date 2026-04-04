@@ -262,6 +262,7 @@ export default function AdminProductsPage() {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-widest">Pricing</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-widest text-center">Rating</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-widest">Stock</th>
+                  <th className="p-4 font-medium">Offer</th>
                   <th className="p-4 font-medium">Status</th>
                   <th className="p-4 font-medium text-right">Actions</th>
                 </tr>
@@ -302,6 +303,15 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-600">{product.stock ?? 0}</td>
+                    <td className="p-4">
+                      {product.is_weekend_offer ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200">
+                          Weekend
+                        </span>
+                      ) : (
+                        <span className="text-gray-300 text-xs">—</span>
+                      )}
+                    </td>
                     <td className="p-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         (product.stock ?? 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'

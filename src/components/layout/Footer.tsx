@@ -4,16 +4,27 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { createClient } from '@/utils/supabase/client';
-import { Loader2, CheckCircle2, AlertCircle, Send } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Send, Instagram, MessageCircle, Facebook } from 'lucide-react';
 import Image from 'next/image';
+import { PAYMENT_METHODS } from '@/lib/constants';
+import { useLocale } from 'next-intl';
+
+interface StoreSettings {
+  instagram_url?: string;
+  whatsapp_number?: string;
+  tiktok_url?: string;
+  facebook_url?: string;
+  snapchat_url?: string;
+}
 
 export default function Footer() {
   const t = useTranslations('Footer');
   const navT = useTranslations('Navigation');
+  const locale = useLocale();
   const [email, setEmail] = useState('');
   const [mounted, setMounted] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [storeSettings, setStoreSettings] = useState<any>(null);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
   const [message, setMessage] = useState('');
   const supabase = createClient();
   
@@ -45,214 +56,214 @@ export default function Footer() {
       if (error) {
         if (error.code === '23505') {
           setStatus('success');
-          setMessage('You are already subscribed!');
+          setMessage(t('alreadySubscribed'));
         } else {
           throw error;
         }
       } else {
         setStatus('success');
-        setMessage('Thank you for subscribing!');
+        setMessage(t('subscribeSuccess'));
         setEmail('');
       }
-    } catch (error: any) {
-      console.error('Subscription error:', error);
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Something went wrong';
+      console.error('Subscription error:', err);
       setStatus('error');
-      setMessage(error.message || 'Something went wrong. Please try again.');
-    } finally {
-      setTimeout(() => {
-        if (status !== 'loading') {
-          // Allow retrying
-        }
-      }, 5000);
+      setMessage(errorMsg);
     }
   };
   
   return (
-    <footer className="bg-[var(--color-rose-gold)] text-white">
-      {/* Newsletter Strip */}
-      <div className="bg-[var(--color-luxury-black)] py-10">
+    <footer className="bg-[#fffbfb] border-t border-[#f8e7e9] text-slate-900 overflow-hidden">
+      {/* Newsletter Strip - Modern Light Pink */}
+      <div className="bg-[#fff0f3] py-12 border-b border-[#fef0f2]">
         <div className="container mx-auto px-4 md:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <h3 className="text-xl md:text-2xl font-serif mb-1">{t('newsletterTitle')}</h3>
-              <p className="text-gray-400 text-sm">{t('newsletterSubtitle')}</p>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="text-center md:text-start">
+              <h3 className="text-2xl md:text-3xl font-serif font-bold text-[var(--color-rose-gold)] mb-2">
+                {t('newsletterTitle')}
+              </h3>
+              <p className="text-slate-500 text-sm md:text-base">
+                {t('newsletterSubtitle')}
+              </p>
             </div>
-            <form onSubmit={handleSubscribe} className="flex w-full md:w-auto gap-2">
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('emailPlaceholder')}
-                disabled={status === 'loading'}
-                className="bg-white/10 border border-white/20 rounded-full px-5 py-3 text-sm text-white placeholder-white/50 outline-none focus:border-[var(--color-rose-gold)] transition-colors w-full md:w-72 disabled:opacity-50"
-                required
-                suppressHydrationWarning
-              />
-              <button 
-                type="submit"
-                disabled={status === 'loading'}
-                className="px-6 py-3 bg-[var(--color-rose-gold)] text-white rounded-full text-sm font-semibold uppercase tracking-wider hover:bg-white hover:text-[var(--color-luxury-black)] transition-all flex items-center gap-2 whitespace-nowrap disabled:opacity-50"
-                suppressHydrationWarning
-              >
-                {status === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <><Send size={14} /> {t('subscribe')}</>}
-              </button>
-            </form>
-          </div>
-          {mounted && message && (
-            <div className={`text-xs mt-3 flex items-center gap-2 justify-center md:justify-end ${status === 'success' ? 'text-green-400' : 'text-red-400'}`}>
-              {status === 'success' ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
-              {message}
+            <div className="flex-1 w-full md:w-auto">
+              {status === 'success' ? (
+                <div className="flex items-center gap-4 bg-white/60 backdrop-blur-md border border-green-100 rounded-2xl px-10 py-6 animate-in fade-in zoom-in slide-in-from-bottom-4 duration-700 shadow-xl shadow-green-900/5">
+                  <div className="bg-green-500 rounded-full p-2">
+                    <CheckCircle2 className="text-white h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-slate-900 font-bold text-lg">{message || t('subscribeSuccess')}</h4>
+                    <p className="text-slate-500 text-sm">{t('alreadySubscribed') ? "" : "Check your inbox for exclusive offers."}</p>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleSubscribe} className="flex flex-col md:flex-row w-full gap-4 items-center">
+                  <div className="relative w-full md:w-96">
+                    <input 
+                      type="email" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t('emailPlaceholder')}
+                      disabled={status === 'loading'}
+                      className="w-full bg-white border border-[#f8d0d6] rounded-full px-8 py-5 text-base outline-none focus:ring-4 focus:ring-[var(--color-rose-gold)]/10 focus:border-[var(--color-rose-gold)] transition-all disabled:opacity-50 shadow-sm placeholder:text-slate-300"
+                      required
+                    />
+                    {status === 'error' && (
+                      <div className="absolute -bottom-7 right-6 flex items-center gap-2 text-red-500 text-sm font-medium animate-bounce">
+                        <AlertCircle size={14} />
+                        <span>{message}</span>
+                      </div>
+                    )}
+                  </div>
+                  <button 
+                    type="submit"
+                    disabled={status === 'loading'}
+                    className="w-full md:w-auto bg-slate-900 text-white rounded-full px-12 py-5 text-base font-bold hover:bg-[var(--color-rose-gold)] active:scale-95 transition-all duration-500 disabled:opacity-50 shadow-2xl shadow-slate-900/20 flex items-center justify-center gap-3 group overflow-hidden relative"
+                  >
+                    <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                    {status === 'loading' ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <span className="relative z-10">{t('subscribe')}</span>
+                        <Send className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform rtl:group-hover:-translate-x-1 relative z-10" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
             </div>
-          )}
-        </div>
+      </div>
+      </div>
       </div>
 
-      {/* Main Footer */}
-      <div className="container mx-auto px-4 md:px-8 pt-14 pb-8">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-10 mb-12">
+      {/* Main Footer Content */}
+      <div className="container mx-auto px-4 md:px-8 pt-16 pb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-12 mb-16">
           
-          {/* Brand + Social */}
-          <div className="col-span-2 md:col-span-2">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="relative h-20 w-20 overflow-hidden">
+          {/* Brand Identity & Contact */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="flex items-center gap-4">
+              <div className="relative h-16 w-16 group">
                 <Image 
                    src="/images/logo.png" 
                    alt="Glossy" 
                    fill 
-                   className="object-contain brightness-0 invert" 
+                   sizes="64px"
+                   className="object-contain transition-transform duration-500 group-hover:rotate-12" 
                 />
               </div>
-              <span className="text-white text-2xl font-serif tracking-[0.15em] font-bold">GLOSSY</span>
+              <span className="text-3xl font-serif tracking-[0.2em] font-black text-[var(--color-rose-gold)]">
+                GLOSSY
+              </span>
             </div>
-            <p className="text-white/70 text-sm leading-relaxed max-w-xs mb-6">
+            
+            <p className="text-slate-500 text-sm leading-relaxed max-w-sm">
               {t('aboutText')}
             </p>
-            
-            {/* Social Media Icons */}
-            <div className="flex items-center gap-3">
-              {/* Instagram */}
-              {storeSettings?.instagram_url && (
-                <a 
-                  href={storeSettings.instagram_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-all hover:scale-110"
-                  aria-label="Instagram"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-                  </svg>
-                </a>
-              )}
-              
-              {/* WhatsApp */}
-              {storeSettings?.whatsapp_number && (
-                <a 
-                  href={`https://wa.me/${storeSettings.whatsapp_number.replace(/\D/g, '')}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#25D366]/30 flex items-center justify-center transition-all hover:scale-110"
-                  aria-label="WhatsApp"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                  </svg>
-                </a>
-              )}
-              
-              {/* TikTok */}
-              {storeSettings?.tiktok_url && (
-                <a 
-                  href={storeSettings.tiktok_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-all hover:scale-110"
-                  aria-label="TikTok"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.51a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15.2a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 6.34 6.34 6.34-6.34V8.72a8.19 8.19 0 0 0 4.76 1.52V6.79a4.83 4.83 0 0 1-1-.1z"/>
-                  </svg>
-                </a>
-              )}
-              
-              {/* Facebook */}
-              {storeSettings?.facebook_url && (
-                <a 
-                  href={storeSettings.facebook_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#1877F2]/30 flex items-center justify-center transition-all hover:scale-110"
-                  aria-label="Facebook"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                  </svg>
-                </a>
-              )}
-              
-              {/* Snapchat */}
-              {storeSettings?.snapchat_url && (
-                <a 
-                  href={storeSettings.snapchat_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#FFFC00]/20 flex items-center justify-center transition-all hover:scale-110"
-                  aria-label="Snapchat"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301a.504.504 0 01.2-.044c.12 0 .24.03.336.066.18.06.39.18.39.39a.482.482 0 01-.18.36c-.423.36-1.272.6-1.86.66a.455.455 0 00-.39.42v.036c-.024.18-.024.36.06.51.21.435 1.083 1.803 2.553 2.07a.455.455 0 01.36.42c0 .06-.015.12-.03.18-.09.36-.57.63-1.053.81-.255.09-.45.15-.585.195a.432.432 0 00-.285.285l-.015.06c-.06.24-.12.48-.39.48-.045 0-.09 0-.135-.015-.375-.06-.81-.18-1.35-.18-.15 0-.3.015-.45.03-1.275.15-2.25 1.275-4.2 1.275h-.06c-1.95 0-2.925-1.125-4.2-1.275a2.773 2.773 0 00-.45-.03c-.54 0-.975.12-1.35.18a.607.607 0 01-.135.015c-.27 0-.33-.24-.39-.48l-.015-.06a.432.432 0 00-.285-.285c-.135-.045-.33-.105-.585-.195-.48-.18-.96-.45-1.053-.81a.455.455 0 01-.03-.18c0-.21.18-.39.36-.42 1.47-.27 2.343-1.635 2.553-2.07.084-.15.084-.33.06-.51v-.036a.455.455 0 00-.39-.42c-.57-.06-1.44-.3-1.86-.66a.478.478 0 01-.18-.36c0-.21.21-.33.39-.39a.618.618 0 01.336-.066c.12 0 .24.015.2.044.374.18.734.301 1.033.301.198 0 .326-.045.401-.09a37.58 37.58 0 01-.03-.51l-.003-.06c-.104-1.628-.23-3.654.299-4.847C7.86 1.069 11.216.793 12.206.793z"/>
-                  </svg>
-                </a>
-              )}
+
+            {/* Contact & Social Section */}
+            <div className="space-y-6 pt-2">
+              <div>
+                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-5 font-tajawal">
+                  {t('followUs')}
+                </h4>
+                <div className="flex flex-wrap gap-4">
+                  {storeSettings?.instagram_url && (
+                    <a href={storeSettings.instagram_url} target="_blank" rel="noopener noreferrer" 
+                       className="text-[#E4405F] hover:scale-125 transition-all duration-300 drop-shadow-sm" aria-label="Instagram">
+                      <Instagram size={22} />
+                    </a>
+                  )}
+                  {storeSettings?.whatsapp_number && (
+                    <a href={`https://wa.me/${storeSettings.whatsapp_number.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" 
+                       className="text-[#25D366] hover:scale-125 transition-all duration-300 drop-shadow-sm" aria-label="WhatsApp">
+                      <MessageCircle size={22} />
+                    </a>
+                  )}
+                  {storeSettings?.tiktok_url && (
+                    <a href={storeSettings.tiktok_url} target="_blank" rel="noopener noreferrer" 
+                       className="text-slate-900 hover:scale-125 transition-all duration-300 drop-shadow-sm" aria-label="TikTok">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93v7.2c0 1.96-.5 3.92-1.76 5.46-1.25 1.54-3.1 2.5-5.07 2.68-1.98.18-4.04-.15-5.73-1.24-1.69-1.08-2.92-2.78-3.41-4.73-.49-1.95-.27-4.05.68-5.83.95-1.78 2.54-3.14 4.41-3.79s3.94-.52 5.76.1v4.12c-1.17-.55-2.58-.65-3.83-.24s-2.28 1.3-2.88 2.45c-.6 1.15-.65 2.5-.16 3.69.5 1.19 1.48 2.11 2.68 2.52 1.2.41 2.56.32 3.69-.26 1.14-.58 1.99-1.58 2.37-2.82.38-1.24.26-.33-3.76V.02z"/></svg>
+                    </a>
+                  )}
+                  {storeSettings?.facebook_url && (
+                    <a href={storeSettings.facebook_url} target="_blank" rel="noopener noreferrer" 
+                       className="text-[#1877F2] hover:scale-125 transition-all duration-300 drop-shadow-sm" aria-label="Facebook">
+                      <Facebook size={22} />
+                    </a>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Shop Links */}
+          {/* Quick Links Groupings */}
           <div>
-            <h3 className="text-sm font-semibold mb-5 uppercase tracking-[0.15em]">{t('shopTitle')}</h3>
-            <ul className="space-y-3">
-              <li><Link href="/category/makeup" className="text-white/70 hover:text-white transition-colors text-sm">{navT('makeup')}</Link></li>
-              <li><Link href="/category/skincare" className="text-white/70 hover:text-white transition-colors text-sm">{navT('skincare')}</Link></li>
-              <li><Link href="/category/perfumes" className="text-white/70 hover:text-white transition-colors text-sm">{navT('perfumes')}</Link></li>
-              <li><Link href="/category/accessories" className="text-white/70 hover:text-white transition-colors text-sm">Accessories</Link></li>
-              <li><Link href="/category/watches" className="text-white/70 hover:text-white transition-colors text-sm">Watches</Link></li>
-              <li><Link href="/mystery-boxes" className="text-white/70 hover:text-white transition-colors text-sm">Mystery Boxes</Link></li>
-              <li><Link href="/tips" className="text-[var(--color-rose-gold)] font-bold hover:text-white transition-colors text-sm">✨ {navT('tips')}</Link></li>
+            <h3 className="text-sm font-bold mb-6 uppercase tracking-[0.2em] text-[var(--color-rose-gold)]">{t('shopTitle')}</h3>
+            <ul className="space-y-4">
+              <li><Link href="/category/makeup" className="text-slate-500 hover:text-[var(--color-rose-gold)] transition-colors text-[13px]">{navT('makeup')}</Link></li>
+              <li><Link href="/category/skincare" className="text-slate-500 hover:text-[var(--color-rose-gold)] transition-colors text-[13px]">{navT('skincare')}</Link></li>
+              <li><Link href="/category/perfumes" className="text-slate-500 hover:text-[var(--color-rose-gold)] transition-colors text-[13px]">{navT('perfumes')}</Link></li>
+              <li><Link href="/mystery-boxes" className="text-slate-500 hover:text-[var(--color-rose-gold)] transition-colors text-[13px]">{navT('mysteryBoxes')}</Link></li>
+              <li><Link href="/tips" className="text-[var(--color-rose-gold)] font-bold hover:text-slate-900 transition-colors text-[13px]">✨ {t('beautyTips')}</Link></li>
             </ul>
           </div>
 
-          {/* Help Links */}
           <div>
-            <h3 className="text-sm font-semibold mb-5 uppercase tracking-[0.15em]">{t('helpTitle')}</h3>
-            <ul className="space-y-3">
-              <li><Link href="/contact" className="text-white/70 hover:text-white transition-colors text-sm">Contact Us</Link></li>
-              <li><Link href="/shipping" className="text-white/70 hover:text-white transition-colors text-sm">Shipping & Returns</Link></li>
-              <li><Link href="/faq" className="text-white/70 hover:text-white transition-colors text-sm">FAQ</Link></li>
+            <h3 className="text-sm font-bold mb-6 uppercase tracking-[0.2em] text-[var(--color-rose-gold)]">{t('helpTitle')}</h3>
+            <ul className="space-y-4">
+              <li><Link href="/contact" className="text-slate-500 hover:text-[var(--color-rose-gold)] transition-colors text-[13px]">{t('contactUs')}</Link></li>
+              <li><Link href="/shipping" className="text-slate-500 hover:text-[var(--color-rose-gold)] transition-colors text-[13px]">{t('shippingReturns')}</Link></li>
+              <li><Link href="/faq" className="text-slate-500 hover:text-[var(--color-rose-gold)] transition-colors text-[13px]">{t('faq')}</Link></li>
             </ul>
           </div>
 
-          {/* Account Links */}
           <div>
-            <h3 className="text-sm font-semibold mb-5 uppercase tracking-[0.15em]">{t('accountTitle')}</h3>
-            <ul className="space-y-3">
-              <li><Link href="/account" className="text-white/70 hover:text-white transition-colors text-sm">My Account</Link></li>
-              <li><Link href="/account/orders" className="text-white/70 hover:text-white transition-colors text-sm">Order Tracking</Link></li>
-              <li><Link href="/account/wishlist" className="text-white/70 hover:text-white transition-colors text-sm">Wishlist</Link></li>
+            <h3 className="text-sm font-bold mb-6 uppercase tracking-[0.2em] text-[var(--color-rose-gold)]">{t('accountTitle')}</h3>
+            <ul className="space-y-4">
+              <li><Link href="/account" className="text-slate-500 hover:text-[var(--color-rose-gold)] transition-colors text-[13px]">{t('myAccount')}</Link></li>
+              <li><Link href="/account/orders" className="text-slate-500 hover:text-[var(--color-rose-gold)] transition-colors text-[13px]">{t('orderTracking')}</Link></li>
+              <li><Link href="/account/wishlist" className="text-slate-500 hover:text-[var(--color-rose-gold)] transition-colors text-[13px]">{t('wishlist')}</Link></li>
             </ul>
+          </div>
+
+          {/* Secure Payments Section */}
+          <div className="lg:col-span-1">
+            <h3 className="text-sm font-bold mb-6 uppercase tracking-[0.2em] text-[var(--color-rose-gold)]">{t('securePayments')}</h3>
+            <div className="flex flex-wrap gap-4 items-center">
+              {PAYMENT_METHODS.filter(m => m.id !== 'cod' && m.id !== 'wallet').slice(0, 9).map((method) => (
+                <div key={method.id} className="h-6 w-auto flex items-center justify-center hover:scale-110 transition-all duration-300">
+                  <img 
+                    src={method.icon} 
+                    alt={method.id} 
+                    className="h-full w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
         
-        {/* Bottom Bar */}
-        <div className="border-t border-white/20 pt-8 mt-4 flex flex-col md:flex-row justify-between items-center text-xs text-white/50">
-          <p>&copy; {mounted ? new Date().getFullYear() : ''} GLOSSY. {t('allRightsReserved')}</p>
-          <div className="flex gap-4 mt-4 md:mt-0">
-            <Link href="/privacy" className="hover:text-white transition-colors">{t('privacyPolicy')}</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">{t('termsOfService')}</Link>
+
+        {/* Bottom Bar - Elegant & Minimal */}
+        <div className="border-t border-[#f8e7e9] pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-[11px] text-slate-400 uppercase tracking-widest font-tajawal text-center md:text-start">
+            <p>&copy; {mounted ? new Date().getFullYear() : ''} GLOSSY LIBYA. {t('allRightsReserved')}</p>
+          </div>
+          
+          <div className="flex items-center gap-8 text-[11px] text-slate-400 uppercase tracking-widest font-medium">
+            <Link href="/privacy" className="hover:text-[var(--color-rose-gold)] transition-colors">{t('privacyPolicy')}</Link>
+            <span className="w-1 h-1 bg-[#f8e7e9] rounded-full hidden md:block"></span>
+            <Link href="/terms" className="hover:text-[var(--color-rose-gold)] transition-colors">{t('termsOfService')}</Link>
           </div>
         </div>
       </div>
+
+      {/* Decorative Gradient Overlay */}
+      <div className="absolute bottom-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--color-rose-gold)]/20 to-transparent"></div>
     </footer>
   );
 }

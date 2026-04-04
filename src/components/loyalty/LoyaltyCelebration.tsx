@@ -10,15 +10,30 @@ interface LoyaltyCelebrationProps {
 
 export default function LoyaltyCelebration({ points }: LoyaltyCelebrationProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
+  const [particleProps, setParticleProps] = useState<any[]>([]);
 
   useEffect(() => {
+    setHasMounted(true);
+    // Generate stable random properties for particles on the client only
+    const props = [...Array(24)].map(() => ({
+      xRandom: (Math.random() - 0.5) * 600,
+      yRandom: (Math.random() - 0.5) * 600,
+      rotateRandom: Math.random() * 360,
+      durationRandom: 2 + Math.random(),
+      starSize: 12 + Math.random() * 12,
+      dotWidth: 8 + Math.random() * 10,
+      dotHeight: 8 + Math.random() * 10
+    }));
+    setParticleProps(props);
+
     const timer = setTimeout(() => {
       setIsVisible(false);
     }, 4000); // 4 seconds total to allow for smooth exit
     return () => clearTimeout(timer);
   }, []);
 
-  if (points <= 0) return null;
+  if (points <= 0 || !hasMounted) return null;
 
   return (
     <AnimatePresence>
@@ -34,30 +49,30 @@ export default function LoyaltyCelebration({ points }: LoyaltyCelebrationProps) 
 
           {/* Particles Container */}
           <div className="absolute inset-0 flex items-center justify-center">
-            {[...Array(24)].map((_, i) => (
+            {particleProps.map((prop, i) => (
               <motion.div
                 key={i}
                 initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
                 animate={{
-                  x: (Math.random() - 0.5) * 600,
-                  y: (Math.random() - 0.5) * 600,
+                  x: prop.xRandom,
+                  y: prop.yRandom,
                   scale: [0, 1, 0.5],
                   opacity: [1, 1, 0],
-                  rotate: Math.random() * 360,
+                  rotate: prop.rotateRandom,
                 }}
                 transition={{
-                  duration: 2 + Math.random(),
+                  duration: prop.durationRandom,
                   ease: "easeOut",
                   delay: 0.2,
                 }}
                 className="absolute"
               >
                 {i % 3 === 0 ? (
-                  <Star className="text-[var(--color-rose-gold)] fill-current" size={12 + Math.random() * 12} />
+                  <Star className="text-[var(--color-rose-gold)] fill-current" size={prop.starSize} />
                 ) : (
                   <div 
                     className={`rounded-full ${i % 2 === 0 ? 'bg-[var(--color-luxury-black)]' : 'bg-[var(--color-rose-gold)]'}`} 
-                    style={{ width: 8 + Math.random() * 10, height: 8 + Math.random() * 10 }}
+                    style={{ width: prop.dotWidth, height: prop.dotHeight }}
                   />
                 )}
               </motion.div>

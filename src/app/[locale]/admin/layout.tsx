@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useRouter } from '@/i18n/routing';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Users, FileText, Settings, LogOut, Package, Gift, Truck, Loader2, ShieldAlert, BookOpen, Star, ShieldCheck, Wrench } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, FileText, Settings, LogOut, Package, Gift, Truck, Loader2, ShieldAlert, BookOpen, Star, ShieldCheck, Wrench, BarChart3 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 
@@ -67,6 +67,7 @@ export default function AdminLayout({
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, current: isActive('/admin') },
+    { name: 'Analysis', href: '/admin/analysis', icon: BarChart3, current: isActive('/admin/analysis') },
     { name: 'Products', href: '/admin/products', icon: Package, current: isActive('/admin/products') },
     { name: 'Product Tools', href: '/admin/products/tools', icon: Wrench, current: isActive('/admin/products/tools') },
     { name: 'Categories', href: '/admin/categories', icon: LayoutDashboard, current: isActive('/admin/categories') },

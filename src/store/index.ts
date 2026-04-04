@@ -22,9 +22,9 @@ interface AppState {
   user: AppUser | null;
   homepageSlides: Slide[];
   recentlyViewedIds: string[];
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Omit<CartItem, 'quantity'>, quantity?: number) => void;
+  removeFromCart: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   toggleWishlist: (product: Product) => void;
   setUser: (user: AppUser | null) => void;
@@ -66,27 +66,45 @@ export const useAppStore = create<AppState>()(
       recentlyViewedIds: [],
       addToCart: (product, quantity = 1) =>
         set((state) => {
-          const existing = state.cart.find((item) => item.id === product.id);
-          if (existing) {
-            return {
-              cart: state.cart.map((item) =>
-                item.id === product.id
-                  ? { ...item, quantity: item.quantity + quantity }
-                  : item
-              ),
+          const itemKey = product.selectedVariant 
+            ? `${product.id}-${product.selectedVariant.hex}` 
+            : product.id;
+
+          const existingIndex = state.cart.findIndex((item) => {
+            const currentItemKey = item.selectedVariant 
+              ? `${item.id}-${item.selectedVariant.hex}` 
+              : item.id;
+            return currentItemKey === itemKey;
+          });
+
+          if (existingIndex > -1) {
+            const newCart = [...state.cart];
+            newCart[existingIndex] = {
+              ...newCart[existingIndex],
+              quantity: newCart[existingIndex].quantity + quantity
             };
+            return { cart: newCart };
           }
+
           return { cart: [...state.cart, { ...product, quantity }] };
         }),
-      removeFromCart: (productId) =>
+      removeFromCart: (cartItemId) =>
         set((state) => ({
-          cart: state.cart.filter((item) => item.id !== productId),
+          cart: state.cart.filter((item) => {
+            const itemKey = item.selectedVariant 
+              ? `${item.id}-${item.selectedVariant.hex}` 
+              : item.id;
+            return itemKey !== cartItemId;
+          }),
         })),
-      updateQuantity: (productId, quantity) =>
+      updateQuantity: (cartItemId, quantity) =>
         set((state) => ({
-          cart: state.cart.map((item) =>
-            item.id === productId ? { ...item, quantity } : item
-          ),
+          cart: state.cart.map((item) => {
+            const itemKey = item.selectedVariant 
+              ? `${item.id}-${item.selectedVariant.hex}` 
+              : item.id;
+            return itemKey === cartItemId ? { ...item, quantity } : item;
+          }),
         })),
       clearCart: () => set({ cart: [] }),
       toggleWishlist: (product) =>

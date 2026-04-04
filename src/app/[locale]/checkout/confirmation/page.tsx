@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, use } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { CheckCircle, Package, ArrowRight, Home, Search, Copy, Check, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LoyaltyCelebration from '@/components/loyalty/LoyaltyCelebration';
 
-function ConfirmationContent() {
+function ConfirmationContent({ locale }: { locale: string }) {
+  const t = useTranslations('Checkout');
   const searchParams = useSearchParams();
   const orderId = searchParams.get('oid') || '';
   const earnedPoints = parseInt(searchParams.get('pts') || '0', 10);
@@ -46,20 +48,20 @@ function ConfirmationContent() {
           <CheckCircle size={40} />
         </motion.div>
         
-        <h1 className="text-4xl font-serif mb-4 text-[var(--color-luxury-black)]">Order Confirmed</h1>
-        <p className="text-gray-500 mb-2">Thank you for your purchase from Glossy.</p>
-        <p className="text-gray-500 mb-8">We've received your order and will begin processing it right away.</p>
+        <h1 className="text-4xl font-serif mb-4 text-[var(--color-luxury-black)]">{t('orderConfirmed')}</h1>
+        <p className="text-gray-500 mb-2">{t('thankYou')}</p>
+        <p className="text-gray-500 mb-8">{t('receivedOrder')}</p>
         
         <div className="bg-gray-50 p-6 mb-6 text-left border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
-            <span className="text-xs uppercase tracking-widest text-gray-500 block mb-1">Order Number</span>
+            <span className="text-xs uppercase tracking-widest text-gray-500 block mb-1">{t('orderNumberLabel')}</span>
             <div className="flex items-center gap-2">
               <span className="font-medium text-lg text-[var(--color-luxury-black)]">{orderNumber || 'Processing...'}</span>
               {orderNumber && (
-                <button 
+                 <button 
                   onClick={handleCopy}
                   className="p-1 text-gray-400 hover:text-[var(--color-luxury-black)] transition-colors"
-                  title="Copy order number"
+                  title={t('copyOrderNumber')}
                 >
                   {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
                 </button>
@@ -68,7 +70,7 @@ function ConfirmationContent() {
           </div>
           <div className="flex items-center gap-2 text-[var(--color-rose-gold)] font-medium bg-rose-50 px-4 py-2 rounded-full">
             <Package size={18} />
-            <span className="text-sm">Preparing to Ship</span>
+            <span className="text-sm">{t('preparingToShip')}</span>
           </div>
         </div>
 
@@ -76,9 +78,11 @@ function ConfirmationContent() {
         <div className="bg-amber-50 border border-amber-100 p-4 mb-10 rounded-md text-left flex items-start gap-3">
           <Search size={18} className="text-amber-600 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-amber-800">
-            Save your order number <strong>{orderNumber}</strong>. 
-            You can track your order status anytime from your{' '}
-            <Link href="/account" className="underline font-medium hover:text-amber-900">account page</Link>.
+            {t.rich('saveOrderNumber', {
+              orderNumber: orderNumber,
+              bold: (chunks) => <strong>{chunks}</strong>,
+              link: (chunks) => <Link href="/account" className="underline font-medium hover:text-amber-900">{chunks}</Link>
+            })}
           </p>
         </div>
         
@@ -87,13 +91,13 @@ function ConfirmationContent() {
             href="/account" 
             className="px-8 py-4 bg-[var(--color-luxury-black)] text-white hover:bg-[var(--color-rose-gold)] transition-colors uppercase tracking-widest text-sm font-medium flex items-center justify-center gap-2"
           >
-            <Search size={16} /> Track My Order
+            <Search size={16} /> {t('trackMyOrder')}
           </Link>
           <Link 
             href="/shop" 
             className="px-8 py-4 bg-white border border-gray-200 text-[var(--color-luxury-black)] hover:border-[var(--color-luxury-black)] transition-colors uppercase tracking-widest text-sm font-medium flex items-center justify-center gap-2"
           >
-            Continue Shopping <ArrowRight size={16} />
+            {t('continueShopping')} <ArrowRight size={16} />
           </Link>
         </div>
       </motion.div>
@@ -101,10 +105,12 @@ function ConfirmationContent() {
   );
 }
 
-export default function OrderConfirmationPage() {
+export default function OrderConfirmationPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = use(params);
+
   return (
     <Suspense fallback={<div className="min-h-[70vh] flex items-center justify-center"><Loader2 className="animate-spin" /></div>}>
-      <ConfirmationContent />
+      <ConfirmationContent locale={locale} />
     </Suspense>
   );
 }

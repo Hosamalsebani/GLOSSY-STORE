@@ -15,13 +15,8 @@ export async function PATCH(req: NextRequest) {
     const { orderId, newStatus } = await req.json();
     if (!orderId || !newStatus) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
 
-    const adminSupabase = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_KEY!
-    );
-
     // Fetch the order to get cart_items for stock deduction
-    const { data: order, error: fetchError } = await adminSupabase
+    const { data: order, error: fetchError } = await supabase
       .from('orders')
       .select('status, cart_items, user_id, total_amount')
       .eq('id', orderId)
@@ -36,7 +31,7 @@ export async function PATCH(req: NextRequest) {
     if (wasApproved && order.cart_items && Array.isArray(order.cart_items)) {
       for (const item of order.cart_items) {
         if (!item.id || !item.quantity) continue;
-        const { data: product } = await adminSupabase
+        const { data: product } = await supabase
           .from('products')
           .select('stock')
           .eq('id', item.id)
@@ -44,13 +39,13 @@ export async function PATCH(req: NextRequest) {
 
         if (product && typeof product.stock === 'number') {
           const newStock = Math.max(0, product.stock - item.quantity);
-          await adminSupabase.from('products').update({ stock: newStock }).eq('id', item.id);
+          await supabase.from('products').update({ stock: newStock }).eq('id', item.id);
         }
       }
     }
 
     // Update order status
-    const { error: updateError } = await adminSupabase
+    const { error: updateError } = await supabase
       .from('orders')
       .update({ status: newStatus })
       .eq('id', orderId);

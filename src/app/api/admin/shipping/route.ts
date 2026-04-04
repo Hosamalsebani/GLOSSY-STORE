@@ -33,16 +33,14 @@ export async function POST(req: Request) {
     const { data: adminData } = await supabase.from('admins').select('id').eq('email', user.email).single();
     if (!adminData) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    // 3. Create admin client to bypass RLS for mutations
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_KEY!
-    );
+    // Use standard authenticated client since RLS allows admins
+    // to perform mutations.
+
 
     const body = await req.json();
     const { city_name_en, city_name_ar, cost, active } = body;
 
-    const { data, error } = await adminClient
+    const { data, error } = await supabase
       .from('shipping_rates')
       .insert({ city_name_en, city_name_ar, cost, active })
       .select()
@@ -67,13 +65,11 @@ export async function PATCH(req: Request) {
     const { data: adminData } = await supabase.from('admins').select('id').eq('email', user.email).single();
     if (!adminData) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    // Use admin client to bypass RLS for mutations
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_KEY!
-    );
+    // Use standard authenticated client since RLS allows admins
+    // to perform mutations.
 
-    const { data, error } = await adminClient
+
+    const { data, error } = await supabase
       .from('shipping_rates')
       .update({ city_name_en, city_name_ar, cost, active, updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -102,13 +98,11 @@ export async function DELETE(req: Request) {
     const { data: adminData } = await supabase.from('admins').select('id').eq('email', user.email).single();
     if (!adminData) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    // Use admin client to bypass RLS for mutations
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_KEY!
-    );
+    // Use standard authenticated client since RLS allows admins
+    // to perform mutations.
 
-    const { error } = await adminClient
+
+    const { error } = await supabase
       .from('shipping_rates')
       .delete()
       .eq('id', id);

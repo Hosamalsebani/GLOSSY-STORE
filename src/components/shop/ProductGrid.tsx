@@ -1,13 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useState } from 'react';
+import Image from 'next/image';
 import { ShoppingBag, Star, Heart, AlertTriangle, Eye } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { useAppStore } from '@/store';
 import { Product } from '@/types';
 import FlashSaleTimer from './FlashSaleTimer';
 import QuickViewModal from './QuickViewModal';
-import { useState } from 'react';
 
 export default function ProductGrid({ products = [] }: { products?: Product[] }) {
   const { addToCart, toggleWishlist, wishlist } = useAppStore();
@@ -23,7 +24,7 @@ export default function ProductGrid({ products = [] }: { products?: Product[] })
 
   return (
     <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8">
       {products.map((product, index) => {
         const isWishlisted = wishlist.some(item => item.id === product.id);
         const isOutOfStock = (product.stock ?? 0) <= 0;
@@ -66,7 +67,7 @@ export default function ProductGrid({ products = [] }: { products?: Product[] })
             <div className="relative aspect-[4/5] mb-4 overflow-hidden bg-gray-50 group-image-container">
               <Link href={`/shop/${product.slug || product.id}`} className="block h-full">
                 {/* Primary Image */}
-                <img 
+                <Image 
                   src={
                     product.image_url || 
                     (product.images && product.images.length > 0 ? product.images[0] : 
@@ -74,19 +75,21 @@ export default function ProductGrid({ products = [] }: { products?: Product[] })
                     'https://images.unsplash.com/photo-1596462502278-27bf85033e5a?auto=format&fit=crop&q=80&w=400'))
                   } 
                   alt={product.name}
-                  className={`object-cover w-full h-full transform transition-all duration-700 ease-in-out ${isOutOfStock ? 'opacity-40 grayscale' : 'group-hover:scale-105 group-hover:opacity-0'}`}
+                  fill
+                  className={`object-cover transform transition-all duration-700 ease-in-out ${isOutOfStock ? 'opacity-40 grayscale' : 'group-hover:scale-105 group-hover:opacity-0'}`}
                 />
 
                 {/* Secondary Image on Hover */}
                 {!isOutOfStock && (product.additional_images && product.additional_images.length > 0 || product.images && product.images.length > 1) && (
-                  <img 
+                  <Image 
                     src={
                       (product.additional_images && product.additional_images.length > 0) 
                         ? product.additional_images[0] 
                         : (product.images && product.images.length > 1 ? product.images[1] : '')
                     } 
                     alt={`${product.name} alternate`}
-                    className="absolute inset-0 object-cover w-full h-full opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-in-out"
+                    fill
+                    className="object-cover opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-in-out"
                   />
                 )}
 
@@ -142,22 +145,22 @@ export default function ProductGrid({ products = [] }: { products?: Product[] })
               )}
             </div>
             
-            <Link href={`/shop/${product.slug || product.id}`} className="block text-center pb-4">
-                <span className="text-xs uppercase tracking-widest text-[var(--color-rose-gold)] mb-1 block">{product.brand}</span>
-                <h3 className="text-base font-serif mb-1 group-hover:text-[var(--color-rose-gold)] transition-colors">{product.name}</h3>
+            <Link href={`/shop/${product.slug || product.id}`} className="block text-center pb-2 px-1">
+                <span className="text-[10px] uppercase tracking-widest text-[var(--color-rose-gold)] mb-0.5 block truncate">{product.brand}</span>
+                <h3 className="text-sm md:text-base font-serif mb-0.5 line-clamp-1 group-hover:text-[var(--color-rose-gold)] transition-colors">{product.name}</h3>
                 <div className="flex justify-center items-center gap-1 mb-1">
-                  <Star size={12} className="fill-gray-800 text-gray-800" />
-                  <span className="text-xs text-gray-500">{product.rating}</span>
+                  <Star size={10} className="fill-gray-800 text-gray-800" />
+                  <span className="text-[10px] text-gray-500">{product.rating}</span>
                 </div>
                 {/* Price with discount */}
-                <div className="flex justify-center items-center gap-2">
+                <div className="flex flex-col md:flex-row justify-center items-center gap-1 md:gap-2">
                   {hasDiscount ? (
                     <>
-                      <span className="font-medium text-red-600">{finalPrice} د.ل</span>
-                      <span className="text-sm text-gray-400 line-through">{product.price} د.ل</span>
+                      <span className="font-bold text-red-600 text-xs md:text-base">{finalPrice} د.ل</span>
+                      <span className="text-[10px] md:text-sm text-gray-400 line-through">{product.price} د.ل</span>
                     </>
                   ) : (
-                    <span className="font-medium text-[var(--color-luxury-black)]">{product.price} د.ل</span>
+                    <span className="font-bold text-[var(--color-luxury-black)] text-xs md:text-base">{product.price} د.ل</span>
                   )}
                 </div>
             </Link>

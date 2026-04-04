@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, CheckCircle, Eye, Loader2 } from 'lucide-react';
+import { Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, CheckCircle, Eye, Loader2, Layout } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/utils/supabase/client';
 
@@ -10,9 +10,11 @@ type Slide = {
   image: string;
   title: string;
   subtitle: string;
+  placement: string;
 };
 
 export default function AdminContentPage() {
+  const [activeTab, setActiveTab] = useState('home');
   const [slides, setSlides] = useState<Slide[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -25,14 +27,16 @@ export default function AdminContentPage() {
   const supabase = createClient();
 
   useEffect(() => {
-    fetchSlides();
-  }, []);
+    fetchSlides(activeTab);
+  }, [activeTab]);
 
-  const fetchSlides = async () => {
+  const fetchSlides = async (placement: string) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('sliders')
         .select('*')
+        .eq('placement', placement)
         .order('sort_order', { ascending: true });
         
       if (error) throw error;
@@ -42,7 +46,8 @@ export default function AdminContentPage() {
           id: s.id,
           image: s.image_url,
           title: s.title,
-          subtitle: s.subtitle || ''
+          subtitle: s.subtitle || '',
+          placement: s.placement
         })));
       }
     } catch (error) {
@@ -54,10 +59,11 @@ export default function AdminContentPage() {
 
   const handleAddSlide = () => {
     const newSlide: Slide = {
-      id: crypto.randomUUID(), // Temp ID for the frontend UI
+      id: crypto.randomUUID(),
       image: '',
-      title: 'New Slide Title',
-      subtitle: 'New slide subtitle goes here.',
+      title: (activeTab === 'lenses-banner' || activeTab === 'promo-squares') ? '' : 'New Slide',
+      subtitle: '',
+      placement: activeTab
     };
     setSlides([...slides, newSlide]);
   };
@@ -113,7 +119,6 @@ export default function AdminContentPage() {
     setSaveSuccess(false);
     
     try {
-      // 1. Validation: Ensure all slides have images
       const missingImages = slides.some(s => !s.image);
       if (missingImages) {
         alert('All slides must have an image before saving.');
@@ -121,66 +126,49 @@ export default function AdminContentPage() {
         return;
       }
 
-      // 2. Clear existing slides
-      // Better to use a specific delete or handle the response
-      const { error: deleteError } = await supabase.from('sliders').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      // Clear existing for this placement
+      const { error: deleteError } = await supabase
+        .from('sliders')
+        .delete()
+        .eq('placement', activeTab);
+        
       if (deleteError) {
-        console.error('Delete error:', deleteError);
         throw new Error(`Failed to clear existing slides: ${deleteError.message}`);
       }
       
-      // 3. Insert new slides
       const toInsert = slides.map((s, index) => ({
         image_url: s.image,
         title: s.title,
         subtitle: s.subtitle,
-        sort_order: index
+        sort_order: index,
+        placement: activeTab
       }));
       
       if (toInsert.length > 0) {
         const { error: insertError } = await supabase.from('sliders').insert(toInsert);
         if (insertError) {
-          console.error('Insert error:', insertError);
           throw new Error(`Failed to insert slides: ${insertError.message}`);
         }
       }
       
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-      await fetchSlides();
+      await fetchSlides(activeTab);
     } catch (error: any) {
-      console.error('Full save error details:', error);
-      const errorMessage = error.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
-      
-      if (errorMessage.includes('relation') || errorMessage.includes('does not exist')) {
-        alert('Database missing: The sliders table does not exist yet. Please run the SQL migrations in Supabase.');
-      } else {
-        alert(`Error saving slides: ${errorMessage}`);
-      }
+      console.error('Save error details:', error);
+      alert(`Error saving slides: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-gray-500">
-          <Loader2 className="animate-spin w-8 h-8 opacity-50" />
-          <p className="uppercase tracking-widest text-sm">Loading Homepage Content...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (previewMode) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-serif text-[var(--color-luxury-black)]">Homepage Preview</h2>
+          <h2 className="text-2xl font-serif text-[var(--color-luxury-black)]">Preview</h2>
           <button 
             type="button"
-            title="Exit Preview"
             onClick={() => setPreviewMode(false)}
             className="px-6 py-2 bg-[var(--color-luxury-black)] text-white hover:bg-gray-800 transition-colors"
           >
@@ -190,11 +178,10 @@ export default function AdminContentPage() {
 
         {slides.length === 0 ? (
           <div className="bg-white p-12 text-center border border-gray-200">
-            <h3 className="text-lg text-gray-400 font-medium mb-2">No slides to preview</h3>
-            <p className="text-sm text-gray-500">Go back and add some slides to see the preview.</p>
+            <p className="text-sm text-gray-500">No slides to preview.</p>
           </div>
         ) : (
-          <div className="relative w-full h-[60vh] min-h-[500px] overflow-hidden bg-[var(--color-luxury-black)] border border-gray-200">
+          <div className="relative w-full h-[60vh] min-h-[400px] overflow-hidden bg-[var(--color-luxury-black)] border border-gray-200 rounded-lg">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentPreviewSlide}
@@ -205,9 +192,9 @@ export default function AdminContentPage() {
                 className="absolute inset-0"
               >
                 <img 
-                  className="absolute inset-0 w-full h-full object-cover"
-                  src={slides[currentPreviewSlide]?.image || 'https://images.unsplash.com/photo-1596462502278-27bf85033e5a?auto=format&fit=crop&q=80&w=2000'}
-                  alt={slides[currentPreviewSlide]?.title || 'Slide Preview'}
+                  className="absolute inset-0 w-full h-full object-cover text-center"
+                  src={slides[currentPreviewSlide]?.image}
+                  alt={slides[currentPreviewSlide]?.title}
                 />
                 <div className="absolute inset-0 bg-black/40" />
               </motion.div>
@@ -223,35 +210,29 @@ export default function AdminContentPage() {
                   transition={{ duration: 0.5 }}
                   className="max-w-2xl"
                 >
-                  <span className="text-sm uppercase tracking-[0.3em] font-medium mb-4 block text-[var(--color-rose-gold)]">
-                    Welcome to Glossy
-                  </span>
-                  <h1 className="text-4xl md:text-5xl font-serif mb-6 leading-tight">
+                  <h1 className="text-4xl md:text-5xl font-serif mb-4 leading-tight">
                     {slides[currentPreviewSlide]?.title}
                   </h1>
-                  <p className="text-lg font-light mb-10 text-gray-200">
+                  <p className="text-lg font-light mb-8 text-gray-200">
                     {slides[currentPreviewSlide]?.subtitle}
                   </p>
-                  <div className="inline-block px-8 py-3 bg-white text-[var(--color-luxury-black)] font-medium tracking-widest uppercase">
-                    Explore Collection
-                  </div>
                 </motion.div>
               </AnimatePresence>
             </div>
 
             <div className="absolute bottom-8 left-0 right-0 z-20 flex justify-center gap-3">
               {slides.map((_, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  title={`Slide ${index + 1}`}
-                  onClick={() => setCurrentPreviewSlide(index)}
-                  className={`transition-all duration-300 ${
-                    index === currentPreviewSlide 
-                      ? 'w-10 h-1 bg-white' 
-                      : 'w-5 h-1 bg-white/50 hover:bg-white/70'
-                  }`}
-                />
+                  <button
+                    key={index}
+                    type="button"
+                    title={`Go to slide ${index + 1}`}
+                    onClick={() => setCurrentPreviewSlide(index)}
+                    className={`transition-all duration-300 ${
+                      index === currentPreviewSlide 
+                        ? 'w-10 h-1 bg-white' 
+                        : 'w-5 h-1 bg-white/50 hover:bg-white/70'
+                    }`}
+                  />
               ))}
             </div>
           </div>
@@ -271,17 +252,19 @@ export default function AdminContentPage() {
         title="Upload Image"
       />
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-6">
         <div>
-          <h1 className="text-2xl font-serif text-[var(--color-luxury-black)] mb-2">Homepage Slider</h1>
-          <p className="text-gray-500">Manage the moving carousel images on your storefront.</p>
+          <h1 className="text-2xl font-serif text-[var(--color-luxury-black)] mb-2 flex items-center gap-2">
+            <Layout size={24} /> Banners & Sliders Console
+          </h1>
+          <p className="text-gray-500">Control promotional visuals and hero banners across your entire storefront.</p>
         </div>
-        <div className="flex gap-3 w-full sm:w-auto">
+        <div className="flex gap-3 w-full sm:w-auto mt-4 sm:mt-0">
           <button 
             type="button"
             title="Preview Slider"
             onClick={() => setPreviewMode(true)}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors bg-white font-medium"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors bg-white font-medium shadow-sm"
           >
             <Eye size={18} /> Preview
           </button>
@@ -290,128 +273,199 @@ export default function AdminContentPage() {
             title="Save Changes"
             onClick={handleSave}
             disabled={isSaving}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[var(--color-luxury-black)] text-white hover:bg-gray-800 transition-colors font-medium disabled:bg-gray-400"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[var(--color-luxury-black)] text-white hover:bg-gray-800 transition-colors font-medium disabled:bg-gray-400 shadow-xl"
           >
             {isSaving ? 'Saving...' : saveSuccess ? <><CheckCircle size={18} /> Saved</> : 'Save Changes'}
           </button>
         </div>
       </div>
 
-      <div className="space-y-6">
-        {slides.map((slide, index) => (
-          <div key={slide.id} className="bg-white border border-gray-200 p-6 flex flex-col md:flex-row gap-6 items-start">
-            
-            <div className="w-full md:w-1/3 aspect-[16/9] bg-gray-50 border border-gray-100 flex-shrink-0 relative group rounded-sm overflow-hidden">
-              {slide.image ? (
-                <>
-                  <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+      {/* Tabs */}
+      <div className="flex gap-1 md:gap-4 overflow-x-auto border-b border-gray-200 font-medium text-sm">
+        <button 
+          onClick={() => setActiveTab('home')}
+          className={`py-3 px-2 md:px-6 uppercase tracking-widest whitespace-nowrap outline-none transition-colors ${activeTab === 'home' ? 'border-b-2 border-[var(--color-luxury-black)] text-[var(--color-luxury-black)]' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          Main Homepage Slider
+        </button>
+        <button 
+          onClick={() => setActiveTab('lenses-banner')}
+          className={`py-3 px-2 md:px-6 uppercase tracking-widest whitespace-nowrap outline-none transition-colors ${activeTab === 'lenses-banner' ? 'border-b-2 border-[var(--color-luxury-black)] text-[var(--color-luxury-black)]' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          Lenses Mini Banner
+        </button>
+        <button 
+          onClick={() => setActiveTab('lenses-slider')}
+          className={`py-3 px-2 md:px-6 uppercase tracking-widest whitespace-nowrap outline-none transition-colors ${activeTab === 'lenses-slider' ? 'border-b-2 border-[var(--color-luxury-black)] text-[var(--color-luxury-black)]' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          Lenses Dept. Slider
+        </button>
+        <button 
+          onClick={() => setActiveTab('promo-squares')}
+          className={`py-3 px-2 md:px-6 uppercase tracking-widest whitespace-nowrap outline-none transition-colors ${activeTab === 'promo-squares' ? 'border-b-2 border-[var(--color-luxury-black)] text-[var(--color-luxury-black)]' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          Promo Squares
+        </button>
+        <button 
+          onClick={() => setActiveTab('perfume-banner')}
+          className={`py-3 px-2 md:px-6 uppercase tracking-widest whitespace-nowrap outline-none transition-colors ${activeTab === 'perfume-banner' ? 'border-b-2 border-[var(--color-luxury-black)] text-[var(--color-luxury-black)]' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          Perfume Banner
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex h-40 items-center justify-center">
+          <Loader2 className="animate-spin w-8 h-8 opacity-50" />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {slides.length === 0 && (
+             <div className="text-center py-10 bg-gray-50 border border-gray-200 border-dashed">
+               <p className="text-gray-400 uppercase tracking-widest text-sm mb-4">No content for this placement</p>
+             </div>
+          )}
+
+          {slides.map((slide, index) => (
+            <div key={slide.id} className="bg-white border border-gray-200 p-6 flex flex-col md:flex-row gap-6 items-start relative overflow-hidden group">
+              <div className="absolute top-0 right-0 h-full w-1 bg-gray-100 group-hover:bg-[var(--color-rose-gold)] transition-colors"></div>
+              
+              <div className="w-full md:w-1/3 aspect-[16/9] bg-gray-50 border border-gray-100 flex-shrink-0 relative rounded-sm overflow-hidden group/img">
+                {slide.image ? (
+                  <>
+                    <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
+                    {activeTab === 'home' && (
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                        <button 
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); triggerImageUpload(slide.id); }}
+                          className="bg-white text-[var(--color-luxury-black)] px-4 py-2 font-medium text-sm rounded shadow-sm hover:bg-gray-100"
+                        >
+                          Change Image
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div 
+                    onClick={() => activeTab === 'home' && triggerImageUpload(slide.id)}
+                    className={`w-full h-full flex flex-col items-center justify-center text-gray-400 ${activeTab === 'home' ? 'hover:text-[var(--color-rose-gold)] hover:bg-[var(--color-rose-gold)]/5 cursor-pointer' : ''} transition-colors`}
+                  >
+                    <ImageIcon size={32} className="mb-2" />
+                    <span className="text-sm font-medium">{activeTab === 'home' ? 'Click to Add Media' : 'No Image Set'}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 flex flex-col gap-4 w-full">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-medium text-gray-400 uppercase tracking-widest text-xs flex items-center gap-2">
+                    <span className="w-4 h-4 bg-gray-800 text-white rounded-full flex items-center justify-center">{index + 1}</span> {activeTab.replace('-', ' ')}
+                  </h3>
+                  
+                  <div className="flex items-center gap-1 border border-gray-200 rounded-md p-1 bg-gray-50 shadow-sm">
                     <button 
                       type="button"
-                      title="Change Image"
-                      onClick={() => triggerImageUpload(slide.id)}
-                      className="bg-white text-[var(--color-luxury-black)] px-4 py-2 font-medium text-sm rounded shadow-sm hover:bg-gray-100"
+                      title="Move Up"
+                      onClick={() => handleMoveSlide(index, 'up')}
+                      disabled={index === 0}
+                      className="p-1.5 text-gray-500 hover:bg-white hover:text-[var(--color-luxury-black)] rounded disabled:opacity-30"
                     >
-                      Change Image
+                      <ArrowUp size={14} />
+                    </button>
+                    <button 
+                      type="button"
+                      title="Move Down"
+                      onClick={() => handleMoveSlide(index, 'down')}
+                      disabled={index === slides.length - 1}
+                      className="p-1.5 text-gray-500 hover:bg-white hover:text-[var(--color-luxury-black)] rounded disabled:opacity-30"
+                    >
+                      <ArrowDown size={14} />
+                    </button>
+                    <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                    <button 
+                      type="button"
+                      title="Delete Slide"
+                      onClick={() => handleRemoveSlide(slide.id)}
+                      className="p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 rounded"
+                    >
+                      <Trash2 size={14} />
                     </button>
                   </div>
-                </>
-              ) : (
-                <div 
-                  onClick={() => triggerImageUpload(slide.id)}
-                  title="Upload Image"
-                  className="w-full h-full flex flex-col items-center justify-center text-gray-400 hover:text-[var(--color-rose-gold)] hover:bg-[var(--color-rose-gold)]/5 cursor-pointer transition-colors"
-                >
-                  <ImageIcon size={32} className="mb-2" />
-                  <span className="text-sm font-medium">Upload Image</span>
                 </div>
-              )}
-            </div>
 
-            <div className="flex-1 flex flex-col gap-4 w-full">
-              <div className="flex justify-between items-start">
-                <h3 className="font-medium text-gray-500 uppercase tracking-widest text-xs">Slide {index + 1}</h3>
-                
-                <div className="flex items-center gap-2 border border-gray-200 rounded-md p-1 bg-gray-50">
-                  <button 
-                    type="button"
-                    onClick={() => handleMoveSlide(index, 'up')}
-                    disabled={index === 0}
-                    className="p-1 text-gray-500 hover:bg-white hover:text-[var(--color-luxury-black)] rounded disabled:opacity-30 disabled:hover:bg-transparent"
-                    title="Move Up"
-                  >
-                    <ArrowUp size={16} />
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => handleMoveSlide(index, 'down')}
-                    disabled={index === slides.length - 1}
-                    className="p-1 text-gray-500 hover:bg-white hover:text-[var(--color-luxury-black)] rounded disabled:opacity-30 disabled:hover:bg-transparent"
-                    title="Move Down"
-                  >
-                    <ArrowDown size={16} />
-                  </button>
-                  <div className="w-px h-4 bg-gray-200 mx-1"></div>
-                  <button 
-                    type="button"
-                    onClick={() => handleRemoveSlide(slide.id)}
-                    className="p-1 text-red-500 hover:bg-red-50 hover:text-red-700 rounded"
-                    title="Delete Slide"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                <div className="grid grid-cols-1 gap-4">
+                  {activeTab === 'promo-squares' ? (
+                    <>
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Label (Arabic) — الاسم بالعربية</label>
+                        <input 
+                          type="text" 
+                          placeholder="مثال: الأم والطفل"
+                          title="Arabic label for this square"
+                          value={slide.title}
+                          onChange={(e) => handleChange(slide.id, 'title', e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:ring-1 focus:ring-[var(--color-luxury-black)] outline-none text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Link URL — رابط القسم</label>
+                        <input 
+                          type="text" 
+                          placeholder="/category/mother-and-child"
+                          title="Link URL for this square"
+                          value={slide.subtitle}
+                          onChange={(e) => handleChange(slide.id, 'subtitle', e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:ring-1 focus:ring-[var(--color-luxury-black)] outline-none text-sm font-mono text-xs"
+                        />
+                      </div>
+                      <p className="text-[10px] text-gray-400 italic">Upload a square image above. The label will appear as an overlay on the homepage.</p>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Overlay Title (Optional)</label>
+                        <input 
+                          type="text" 
+                          placeholder="Leave completely empty if you only want the image to show."
+                          title="Overlay title text"
+                          value={slide.title}
+                          onChange={(e) => handleChange(slide.id, 'title', e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:ring-1 focus:ring-[var(--color-luxury-black)] outline-none text-sm"
+                        />
+                      </div>
+
+                      {activeTab !== 'lenses-banner' && (
+                        <div>
+                          <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Subheading / Description</label>
+                          <textarea 
+                            rows={2}
+                            title="Subheading text"
+                            value={slide.subtitle}
+                            onChange={(e) => handleChange(slide.id, 'subtitle', e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:ring-1 focus:ring-[var(--color-luxury-black)] outline-none resize-none text-sm"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <label htmlFor={`headline-${slide.id}`} className="block text-sm font-medium text-gray-700 mb-1">Headline</label>
-                <input 
-                  id={`headline-${slide.id}`}
-                  type="text" 
-                  value={slide.title}
-                  title="Headline"
-                  onChange={(e) => handleChange(slide.id, 'title', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 focus:ring-1 focus:ring-[var(--color-luxury-black)] focus:border-transparent outline-none transition-shadow"
-                />
-              </div>
-
-              <div>
-                <label htmlFor={`subheading-${slide.id}`} className="block text-sm font-medium text-gray-700 mb-1">Subheading</label>
-                <textarea 
-                  id={`subheading-${slide.id}`}
-                  rows={2}
-                  value={slide.subtitle}
-                  title="Subheading"
-                  onChange={(e) => handleChange(slide.id, 'subtitle', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 focus:ring-1 focus:ring-[var(--color-luxury-black)] focus:border-transparent outline-none transition-shadow resize-none"
-                />
-              </div>
             </div>
-
-          </div>
-        ))}
-      </div>
-
-      <button 
-        type="button"
-        title="Add New Slide"
-        onClick={handleAddSlide}
-        className="w-full py-6 border-2 border-dashed border-gray-300 text-gray-500 hover:border-[var(--color-rose-gold)] hover:text-[var(--color-rose-gold)] hover:bg-[var(--color-rose-gold)]/5 transition-colors font-medium flex items-center justify-center gap-2"
-      >
-        <Plus size={20} /> Add New Slide
-      </button>
-
-      <div className="bg-blue-50/50 p-4 border border-blue-100 rounded-sm text-sm text-blue-800 flex items-start gap-3 mt-8">
-        <div className="mt-0.5">ℹ️</div>
-        <div>
-          <p className="font-medium mb-1">Pro Tips for Luxury Slides</p>
-          <ul className="list-disc pl-4 space-y-1 text-blue-700/80">
-            <li>Use high-resolution images (recommended 2000x1200px or higher)</li>
-            <li>Darker imagery works best to let the white text stand out</li>
-            <li>Keep headlines under 5 words for maximum impact</li>
-          </ul>
+          ))}
         </div>
-      </div>
+      )}
+
+      {(!loading && activeTab === 'home') && (
+         <button 
+           type="button"
+           onClick={handleAddSlide}
+           className="w-full py-6 border-2 border-dashed border-gray-300 text-gray-500 hover:border-[var(--color-luxury-black)] hover:text-[var(--color-luxury-black)] transition-all font-medium uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+         >
+           <Plus size={18} /> Add New Slide
+         </button>
+      )}
     </div>
   );
 }

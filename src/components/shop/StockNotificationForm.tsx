@@ -49,7 +49,7 @@ export default function StockNotificationForm({ productId, productName }: StockN
         <CheckCircle className="text-green-500" size={32} />
         <div>
           <h3 className="font-serif text-lg text-green-900">Success!</h3>
-          <p className="text-sm text-green-700">We'll email you as soon as {productName} is back in stock.</p>
+          <p className="text-sm text-green-700">We&apos;ll email you as soon as {productName} is back in stock.</p>
         </div>
       </div>
     );
@@ -62,7 +62,7 @@ export default function StockNotificationForm({ productId, productName }: StockN
         <h3 className="font-serif text-lg">Notify Me When Available</h3>
       </div>
       <p className="text-sm text-gray-500 mb-6 font-light">
-        This popular item is currently out of stock. Leave your email below and be the first to know when it's back.
+        This popular item is currently out of stock. Leave your email below and be the first to know when it&apos;s back.
       </p>
       
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -90,7 +90,7 @@ export default function StockNotificationForm({ productId, productName }: StockN
               Processing...
             </>
           ) : (
-            'Notify Me'
+            "Notify Me"
           )}
         </button>
       </form>

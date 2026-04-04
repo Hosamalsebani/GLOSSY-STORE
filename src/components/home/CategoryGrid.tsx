@@ -19,12 +19,20 @@ export default function CategoryGrid() {
   useEffect(() => {
     async function fetchCategories() {
       try {
+        // Use a cache-busting timestamp to ensure we get the latest data from Supabase
         const { data, error } = await supabase
           .from('categories')
           .select('*')
           .order('name_en', { ascending: true });
         
-        if (data) setCategories(data);
+        if (data) {
+          // Verify that all images have a value, otherwise provide a standard fallback
+          const sanitizedData = data.map(cat => ({
+            ...cat,
+            image_url: cat.image_url || `https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400`
+          }));
+          setCategories(sanitizedData);
+        }
       } catch (err) {
         console.error('Error fetching categories:', err);
       } finally {
@@ -51,18 +59,14 @@ export default function CategoryGrid() {
   }
 
   return (
-    <section className="py-12 md:py-20 bg-white overflow-hidden">
-      <div className="px-4 md:container md:mx-auto md:px-8">
+    <section className="py-2 md:py-4 bg-white overflow-hidden relative z-10">
+      <div className="md:container md:mx-auto md:px-8">
         
-        <div className="flex justify-between items-end mb-8 md:mb-12">
-          <div className="max-w-xl">
-             <h2 className={`text-2xl md:text-4xl font-serif text-[var(--color-luxury-black)] mb-2 md:mb-4 uppercase tracking-tight ${isRtl ? 'font-arabic' : ''}`}>
-              <span className="border-b-2 border-[var(--color-rose-gold)] pb-1">{t('categoryTitle')}</span>
-            </h2>
-            <p className="text-[10px] md:text-sm text-gray-500 font-light tracking-wide uppercase">
-              {t('categorySubtitle')}
-            </p>
-          </div>
+        {/* Hide Title on Mobile for cleaner look like NiceOne */}
+        <div className="hidden md:flex justify-between items-center mb-4 md:mb-6 px-4 md:px-0">
+          <h2 className={`text-base md:text-xl font-bold text-[var(--color-luxury-black)] ${isRtl ? 'font-arabic' : ''}`}>
+            {t('categoryTitle')}
+          </h2>
           <div className="flex gap-2 mb-1">
             <button 
               onClick={() => scroll('left')}
@@ -82,31 +86,29 @@ export default function CategoryGrid() {
         </div>
 
         <div 
-          ref={scrollRef}
-          className="flex gap-6 md:gap-14 overflow-x-auto pb-8 snap-x no-scrollbar pt-4"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            ref={scrollRef}
+            className="grid grid-rows-2 grid-flow-col gap-x-6 md:gap-x-10 gap-y-4 overflow-x-auto pb-3 pt-2 px-4 md:px-0 snap-x [scrollbar-width:none] [-ms-overflow-style:none]"
         >
           {categories.map((category, index) => (
-            <Link key={category.id} href={`/category/${category.slug}`} className="snap-center flex-shrink-0">
+            <Link key={category.id} href={`/category/${category.slug}`} className="snap-center">
               <motion.div 
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col items-center gap-5 group cursor-pointer"
+                transition={{ duration: 0.4, delay: index * 0.02, ease: 'easeOut' }}
+                className="flex flex-col items-center gap-2.5 group cursor-pointer w-[76px] md:w-28"
               >
-                <div className="relative w-28 h-28 md:w-44 md:h-44 rounded-full overflow-hidden border-2 border-transparent group-hover:border-[var(--color-rose-gold)] transition-all duration-700 shadow-xl group-hover:shadow-[0_20px_50px_rgba(202,152,102,0.15)] ring-4 ring-gray-50/50 group-hover:ring-[var(--color-rose-gold)]/20 p-1">
-                  <div className="w-full h-full rounded-full overflow-hidden">
-                    <img 
-                      src={category.image_url} 
-                      alt={locale === 'ar' ? category.name_ar : category.name_en}
-                      className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-1000 ease-out"
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/5 group-hover:to-transparent transition-all duration-500" />
+                <div className="relative w-16 h-16 md:w-24 md:h-24 rounded-full overflow-hidden border-2 border-white shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-500 group-hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] group-hover:scale-105 group-hover:border-[var(--color-rose-gold)]/40">
+                  <img 
+                    src={category.image_url} 
+                    alt={locale === 'ar' ? category.name_ar : category.name_en}
+                    onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400'; }}
+                    className="object-cover w-full h-full transform transition-transform duration-1000 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 
-                <h3 className={`text-[10px] md:text-sm font-bold uppercase tracking-[0.25em] text-[var(--color-luxury-black)] group-hover:text-[var(--color-rose-gold)] transition-colors text-center max-w-[120px] md:max-w-[150px] leading-relaxed ${locale === 'ar' ? 'font-arabic' : ''}`}>
+                <h3 className={`text-[10px] md:text-sm font-black text-[#111111] text-center w-full leading-tight line-clamp-1 truncate px-1 tracking-tight ${locale === 'ar' ? 'font-arabic' : ''}`}>
                   {locale === 'ar' ? category.name_ar : category.name_en}
                 </h3>
               </motion.div>

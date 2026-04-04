@@ -21,11 +21,22 @@ export interface Product {
   stock?: number;
   discount_percentage?: number;
   sale_end_date?: string;
+  is_weekend_offer?: boolean;
   created_at?: string;
+  variants?: { name_ar: string; name_en: string; hex: string; image_url?: string }[];
+}
+
+export interface Category {
+  id: string;
+  name_en: string;
+  name_ar: string;
+  slug: string;
+  image_url?: string;
 }
 
 export interface CartItem extends Product {
   quantity: number;
+  selectedVariant?: { name_ar: string; name_en: string; hex: string };
 }
 
 export interface UserProfile {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, ShoppingBag, Heart, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { useAppStore } from '@/store';
 import { Product } from '@/types';
@@ -22,8 +23,6 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
 
   useEffect(() => {
     if (product) {
-      setQuantity(1);
-      setCurrentImageIndex(0);
       document.body.style.overflow = 'hidden';
     }
     return () => { document.body.style.overflow = ''; };
@@ -85,6 +84,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
             exit={{ opacity: 0, y: 60 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             onClick={(e) => e.stopPropagation()}
+            key={product.id}
             className="relative bg-white rounded-t-2xl md:rounded-2xl shadow-2xl w-full md:max-w-3xl max-h-[92vh] md:max-h-[90vh] overflow-hidden flex flex-col md:flex-row z-10"
           >
             {/* Mobile drag handle */}
@@ -101,10 +101,12 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
 
             {/* Image Section */}
             <div className="relative w-full md:w-1/2 aspect-[4/3] md:aspect-auto bg-gray-50 flex-shrink-0">
-              <img
+              <Image
                 src={allImages[currentImageIndex]}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                priority
               />
 
               {/* Image Navigation */}
@@ -164,7 +166,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
 
               {/* Name */}
               <h2 className={`text-xl md:text-2xl font-serif text-[var(--color-luxury-black)] mb-3 leading-tight ${isRtl ? 'font-arabic' : ''}`}>
-                {isRtl && (product as any).name_ar ? (product as any).name_ar : product.name}
+                {isRtl && product.name_ar ? product.name_ar : product.name}
               </h2>
 
               {/* Rating */}

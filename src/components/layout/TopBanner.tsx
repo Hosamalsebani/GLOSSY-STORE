@@ -34,7 +34,7 @@ const getIcon = (type: string) => {
 
 export default function TopBanner() {
   return (
-    <div className="w-full bg-black overflow-hidden py-2 border-b border-white/5 relative h-8 md:h-10">
+    <div className="w-full bg-gray-50 overflow-hidden py-2.5 border-y border-gray-100 relative h-9 md:h-11">
       <div className="absolute top-0 left-0 h-full flex items-center">
         <div 
           className="flex whitespace-nowrap items-center animate-scroll"
@@ -45,12 +45,12 @@ export default function TopBanner() {
         >
           {/* Two identical sets for a perfect seamless loop */}
           {[1, 2].map((set) => (
-            <div key={`set-${set}`} className="flex items-center gap-12 md:gap-24 px-6 md:px-12">
+            <div key={`set-${set}`} className="flex items-center gap-10 md:gap-20 px-6 md:px-12">
               {DEFAULT_BAR_ITEMS.map((item, index) => (
                 <div key={`item-${set}-${index}`} className="flex items-center gap-2 group">
                   <Link
                     href={`/shop?brand=${item.slug}`}
-                    className="text-white text-[10px] md:text-xs font-serif tracking-[0.3em] font-medium hover:text-[var(--color-rose-gold)] transition-colors"
+                    className="text-gray-500 text-[10px] md:text-xs font-sans tracking-[0.2em] font-semibold hover:text-[var(--color-rose-gold)] transition-colors"
                   >
                     {item.text}
                   </Link>

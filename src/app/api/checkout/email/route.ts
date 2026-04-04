@@ -7,59 +7,87 @@ const ADMIN_EMAIL = 'hosamalshebani990@gmail.com';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    console.log('Received email notification request:', body);
     const { customerName, customerPhone, customerEmail, city, address, total, items } = body;
 
     const itemsHtml = (items || [])
       .map(
         (item: { name: string; quantity: number; price: number }) =>
           `<tr>
-            <td style="padding:8px 12px; border-bottom:1px solid #f0f0f0;">${item.name}</td>
-            <td style="padding:8px 12px; border-bottom:1px solid #f0f0f0; text-align:center;">${item.quantity}</td>
-            <td style="padding:8px 12px; border-bottom:1px solid #f0f0f0; text-align:right;">$${item.price.toFixed(2)}</td>
+            <td style="padding:12px; border-bottom:1px solid #eee; font-size:14px;">
+              <div style="font-weight:bold; color:#1a1a1a;">${item.name}</div>
+            </td>
+            <td style="padding:12px; border-bottom:1px solid #eee; text-align:center; font-size:14px; color:#666;">${item.quantity}</td>
+            <td style="padding:12px; border-bottom:1px solid #eee; text-align:right; font-size:14px; font-weight:bold; color:#1a1a1a;">${item.price.toFixed(2)} د.ل</td>
           </tr>`
       )
       .join('');
 
     const emailHtml = `
-      <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a;">
-        <div style="background: #1a1a1a; padding: 32px; text-align: center;">
-          <h1 style="color: #c9a96e; font-size: 24px; letter-spacing: 4px; margin: 0;">GLOSSY</h1>
-          <p style="color: #888; font-size: 12px; letter-spacing: 2px; margin: 8px 0 0;">NEW ORDER NOTIFICATION</p>
+      <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fcfcfc; border: 1px solid #eee;">
+        <!-- Header -->
+        <div style="background-color: #1a1a1a; padding: 40px 20px; text-align: center;">
+          <h1 style="color: #d4af37; font-size: 28px; letter-spacing: 5px; margin: 0; font-family: serif;">GLOSSY</h1>
+          <p style="color: #999; font-size: 11px; letter-spacing: 3px; margin: 10px 0 0; text-transform: uppercase;">إشعار طلب جديد | NEW ORDER NOTIFICATION</p>
         </div>
-        
-        <div style="padding: 32px; background: #fff;">
-          <h2 style="font-size: 18px; margin: 0 0 24px;">New Order Received</h2>
-          
-          <div style="background: #f9f9f9; padding: 20px; border-radius: 4px; margin-bottom: 24px;">
-            <h3 style="font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin: 0 0 16px;">Customer Details</h3>
-            <p style="margin: 4px 0;"><strong>Name:</strong> ${customerName || 'N/A'}</p>
-            <p style="margin: 4px 0;"><strong>Phone:</strong> ${customerPhone || 'N/A'}</p>
-            ${customerEmail ? `<p style="margin: 4px 0;"><strong>Email:</strong> ${customerEmail}</p>` : ''}
-            <p style="margin: 4px 0;"><strong>City:</strong> ${city || 'N/A'}</p>
-            <p style="margin: 4px 0;"><strong>Address:</strong> ${address || 'N/A'}</p>
+
+        <!-- Body -->
+        <div style="padding: 30px; background-color: #ffffff;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: #1a1a1a; font-size: 20px; margin: 0;">تم استلام طلب جديد بنجاح</h2>
+            <p style="color: #666; font-size: 14px; margin: 5px 0 0;">A new order has been successfully received</p>
           </div>
-          
-          <h3 style="font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin: 0 0 16px;">Order Items</h3>
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+
+          <!-- Customer Info -->
+          <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-right: 4px solid #d4af37;">
+            <h3 style="font-size: 14px; color: #999; text-transform: uppercase; margin: 0 0 15px; letter-spacing: 1px;">بيانات العميل | Customer Details</h3>
+            <table style="width: 100%; font-size: 14px; line-height: 1.6;">
+              <tr>
+                <td style="color: #666; width: 100px;">الاسم:</td>
+                <td style="font-weight: bold; color: #1a1a1a;">${customerName || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="color: #666;">الهاتف:</td>
+                <td style="font-weight: bold; color: #1a1a1a;">${customerPhone || 'N/A'}</td>
+              </tr>
+              ${customerEmail ? `
+              <tr>
+                <td style="color: #666;">الإيميل:</td>
+                <td style="font-weight: bold; color: #1a1a1a;">${customerEmail}</td>
+              </tr>` : ''}
+              <tr>
+                <td style="color: #666;">المدينة:</td>
+                <td style="font-weight: bold; color: #1a1a1a;">${city || 'N/A'}</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Order Items -->
+          <h3 style="font-size: 14px; color: #999; text-transform: uppercase; margin: 0 0 15px; letter-spacing: 1px; text-align: center;">المنتجات | Order Items</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
             <thead>
-              <tr style="border-bottom: 2px solid #1a1a1a;">
-                <th style="padding: 8px 12px; text-align: left; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;">Product</th>
-                <th style="padding: 8px 12px; text-align: center; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;">Qty</th>
-                <th style="padding: 8px 12px; text-align: right; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;">Price</th>
+              <tr style="background-color: #1a1a1a; color: #fff;">
+                <th style="padding: 12px; text-align: right; font-size: 12px;">المنتج</th>
+                <th style="padding: 12px; text-align: center; font-size: 12px;">الكمية</th>
+                <th style="padding: 12px; text-align: left; font-size: 12px;">السعر</th>
               </tr>
             </thead>
             <tbody>
               ${itemsHtml}
             </tbody>
           </table>
-          
-          <div style="border-top: 2px solid #1a1a1a; padding-top: 16px; text-align: right;">
-            <p style="font-size: 18px; font-weight: bold; margin: 0;">Total: $${Number(total).toFixed(2)}</p>
+
+          <!-- Total -->
+          <div style="border-top: 2px solid #1a1a1a; padding-top: 20px; text-align: left;">
+            <p style="margin: 0; font-size: 14px; color: #666;">الإجمالي الكلي | Grand Total</p>
+            <p style="margin: 5px 0 0; font-size: 24px; font-weight: bold; color: #1a1a1a;">${Number(total).toFixed(2)} د.ل</p>
           </div>
         </div>
-        
-        <div style="background: #f9f9f9; padding: 20px; text-align: center;">
-          <p style="font-size: 12px; color: #888; margin: 0;">Please log in to the admin dashboard to manage this order.</p>
+
+        <!-- Footer -->
+        <div style="background-color: #f9f9f9; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+          <p style="font-size: 12px; color: #888; margin: 0;">هذا إشعار تلقائي من نظام متجر جلوسي.</p>
+          <p style="font-size: 11px; color: #aaa; margin: 5px 0 0;">Automatic notification from GLOSSY Store System.</p>
         </div>
       </div>
     `;
@@ -67,7 +95,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await resend.emails.send({
       from: 'Glossy Store <onboarding@resend.dev>',
       to: [ADMIN_EMAIL],
-      subject: `🛍️ New Order — ${customerName || 'Customer'} — $${Number(total).toFixed(2)}`,
+      subject: `🛍️ طلب جديد من ${customerName || 'عميل'} — بقيمة ${Number(total).toFixed(2)} د.ل`,
       html: emailHtml,
     });
 

@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useAppStore } from '@/store';
 
 export default function AuthSync() {
   const { setUser } = useAppStore();
-  const supabase = createClient();
+  const supabaseRef = useRef(createClient());
+  const supabase = supabaseRef.current;
 
   useEffect(() => {
     // Check current session on mount

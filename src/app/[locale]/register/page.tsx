@@ -9,23 +9,26 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { createClient } from '@/utils/supabase/client';
 import { useAppStore } from '@/store';
+import { useTranslations } from 'next-intl';
 
-const registerSchema = z.object({
-  firstName: z.string().min(2, { message: 'First name is required' }),
-  lastName: z.string().min(2, { message: 'Last name is required' }),
-  email: z.string().email({ message: 'Please enter a valid email address' }),
-  phone: z.string().min(7, { message: 'Please enter a valid phone number' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+const getRegisterSchema = (tAuth: any, tProfile: any) => z.object({
+  firstName: z.string().min(2, { message: tProfile('firstName') }),
+  lastName: z.string().min(2, { message: tProfile('lastName') }),
+  email: z.string().email({ message: tAuth('email') }),
+  phone: z.string().min(7, { message: tProfile('phone') }),
+  password: z.string().min(6, { message: tAuth('passwordTooShort') }),
   confirmPassword: z.string(),
   birthday: z.string().optional().or(z.literal('')),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: tAuth('passwordsDoNotMatch'),
   path: ["confirmPassword"],
 });
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
+type RegisterFormValues = z.infer<ReturnType<typeof getRegisterSchema>>;
 
 export default function RegisterPage() {
+  const t = useTranslations('Auth');
+  const tProfile = useTranslations('Profile');
   const router = useRouter();
   const { login } = useAppStore();
   const [showPassword, setShowPassword] = useState(false);
@@ -34,14 +37,16 @@ export default function RegisterPage() {
   const supabase = createClient();
 
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(getRegisterSchema(t, tProfile)),
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
     setIsSubmitting(true);
     setAuthError(null);
     try {
-      // 1. Sign up with Supabase Auth (This will trigger the verification email)
+      // 1. Sign up with Supabase Auth (We use our custom flow, but Supabase handles the actual user creation)
+      // Note: Make sure Supabase email confirmations are disabled in the Supabase Dashboard
+      // or intercept the flow using our custom OTP.
       const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -57,7 +62,11 @@ export default function RegisterPage() {
         throw error;
       }
 
+      // Generate a 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
       // 2. Insert the user profile into public.users table (not verified yet)
+      // We will temporarily store the OTP here for verification purposes.
       if (authData.user) {
         await supabase.from('users').upsert({
           id: authData.user.id,
@@ -65,11 +74,29 @@ export default function RegisterPage() {
           full_name: `${data.firstName} ${data.lastName}`,
           phone_number: data.phone,
           birthday: data.birthday || null,
-          is_verified: false, // Will be set to true after OTP verification
+          is_verified: false,
+          custom_otp: otp, // Temporarily store OTP
+          otp_expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes expiry
         }, { onConflict: 'id' });
       }
 
-      // 3. Save email for verification page and redirect
+      // 3. Send the stylized OTP email via Resend
+      const emailRes = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.email,
+          customerName: data.firstName,
+          otp: otp
+        })
+      });
+
+      if (!emailRes.ok) {
+        console.error('Failed to send verification email');
+        // Continue anyway so the user can land on the verify page and request a resend
+      }
+
+      // 4. Save email for verification page and redirect
       sessionStorage.setItem('verify_email', data.email);
       router.push('/verify-email');
     } catch (error: any) {
@@ -115,8 +142,8 @@ export default function RegisterPage() {
                 <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-[1px] bg-[var(--color-rose-gold)] scale-0 group-hover/logo:scale-100 transition-transform" />
               </motion.div>
             </Link>
-            <h2 className="text-3xl font-serif text-white tracking-tight mb-2">Create Account</h2>
-            <p className="text-white/60 text-sm font-light tracking-widest uppercase">Elegance awaits you</p>
+            <h2 className="text-3xl font-serif text-white tracking-tight mb-2">{t('createAccount')}</h2>
+            <p className="text-white/60 text-sm font-light tracking-widest uppercase">{t('eleganceAwaits')}</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -143,7 +170,7 @@ export default function RegisterPage() {
                   <input
                     {...register('firstName')}
                     type="text"
-                    placeholder="First Name"
+                    placeholder={tProfile('firstName')}
                     className="w-full bg-white/5 border border-white/10 text-white pl-11 pr-4 py-3.5 rounded-2xl outline-none focus:border-[var(--color-rose-gold)]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-sm"
                   />
                   {errors.firstName && (
@@ -154,7 +181,7 @@ export default function RegisterPage() {
                   <input
                     {...register('lastName')}
                     type="text"
-                    placeholder="Last Name"
+                    placeholder={tProfile('lastName')}
                     className="w-full bg-white/5 border border-white/10 text-white pl-4 pr-4 py-3.5 rounded-2xl outline-none focus:border-[var(--color-rose-gold)]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-sm"
                   />
                   {errors.lastName && (
@@ -171,7 +198,7 @@ export default function RegisterPage() {
                 <input
                   {...register('email')}
                   type="email"
-                  placeholder="Email Address"
+                  placeholder={t('email')}
                   className="w-full bg-white/5 border border-white/10 text-white pl-14 pr-5 py-3.5 rounded-2xl outline-none focus:border-[var(--color-rose-gold)]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-sm"
                 />
                 {errors.email && (
@@ -187,7 +214,7 @@ export default function RegisterPage() {
                 <input
                   {...register('phone')}
                   type="tel"
-                  placeholder="Phone Number"
+                  placeholder={tProfile('phone')}
                   className="w-full bg-white/5 border border-white/10 text-white pl-14 pr-5 py-3.5 rounded-2xl outline-none focus:border-[var(--color-rose-gold)]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-sm"
                 />
                 {errors.phone && (
@@ -203,7 +230,7 @@ export default function RegisterPage() {
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
+                  placeholder={t('password')}
                   className="w-full bg-white/5 border border-white/10 text-white pl-14 pr-14 py-3.5 rounded-2xl outline-none focus:border-[var(--color-rose-gold)]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-sm"
                 />
                 <button
@@ -226,11 +253,11 @@ export default function RegisterPage() {
                   <input
                     {...register('birthday')}
                     type="date"
-                    placeholder="Date of Birth (Optional)"
+                    placeholder={t('birthday')}
                     className="w-full bg-white/5 border border-white/10 text-white pl-14 pr-5 py-3.5 rounded-2xl outline-none focus:border-[var(--color-rose-gold)]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-sm [color-scheme:dark]"
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-white/20 uppercase tracking-widest pointer-events-none">
-                    Optional
+                    {t('optional')}
                   </div>
                 </div>
   
@@ -242,7 +269,7 @@ export default function RegisterPage() {
                 <input
                   {...register('confirmPassword')}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Confirm Password"
+                  placeholder={t('confirmPassword')}
                   className="w-full bg-white/5 border border-white/10 text-white pl-14 pr-14 py-3.5 rounded-2xl outline-none focus:border-[var(--color-rose-gold)]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-sm"
                 />
                 {errors.confirmPassword && (
@@ -263,15 +290,17 @@ export default function RegisterPage() {
                 {isSubmitting ? (
                   <Loader2 className="animate-spin h-4 w-4" />
                 ) : (
-                  <>Create Account <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" /></>
+                  <>
+                    {t('createAccount')} <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </>
                 )}
               </span>
             </motion.button>
 
             <div className="text-center pt-2">
-              <p className="text-white/40 text-[10px] uppercase tracking-[0.2em]">Already a member?</p>
+              <p className="text-white/40 text-[10px] uppercase tracking-[0.2em]">{t('alreadyMember')}</p>
               <Link href="/login" className="inline-block mt-2 text-white font-medium hover:text-[var(--color-rose-gold)] transition-colors text-sm">
-                Sign In
+                {t('signIn')}
               </Link>
             </div>
           </form>
@@ -279,9 +308,9 @@ export default function RegisterPage() {
 
         {/* Footer Links */}
         <div className="mt-8 flex justify-center gap-6 text-[10px] uppercase tracking-widest text-white/30 font-light pb-8 md:pb-0">
-          <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-          <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-          <Link href="/help" className="hover:text-white transition-colors">Support</Link>
+          <Link href="/privacy" className="hover:text-white transition-colors">{t('privacyPolicy')}</Link>
+          <Link href="/terms" className="hover:text-white transition-colors">{t('termsOfService')}</Link>
+          <Link href="/help" className="hover:text-white transition-colors">{t('support')}</Link>
         </div>
       </motion.div>
 

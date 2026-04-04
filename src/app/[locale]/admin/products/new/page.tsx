@@ -72,6 +72,7 @@ export default function AddProductPage() {
       name: formData.get('name') as string,
       brand: formData.get('brand') as string,
       price: parseFloat(formData.get('price') as string),
+      cost_price: parseFloat(formData.get('cost_price') as string) || 0,
       category: formData.get('category') as string,
       stock: parseInt(formData.get('stock') as string) || 20,
       discount_percentage: parseFloat(formData.get('discount_percentage') as string) || 0,
@@ -82,6 +83,7 @@ export default function AddProductPage() {
       usage_ar: formData.get('usage_ar') as string,
       image_url: images.length > 0 ? images[0] : null,
       additional_images: images.length > 1 ? images.slice(1) : [],
+      is_weekend_offer: formData.get('is_weekend_offer') === 'on',
       slug: (formData.get('slug') as string) || (formData.get('name') as string).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
     };
 
@@ -169,10 +171,14 @@ export default function AddProductPage() {
         {/* Pricing & Inventory */}
         <div className="bg-white p-6 md:p-8 border border-gray-200 shadow-sm rounded-lg space-y-6">
           <h2 className="text-lg font-serif text-[var(--color-luxury-black)] border-b border-gray-100 pb-2">Pricing & Inventory</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price (د.ل) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sale Price (د.ل) *</label>
               <input name="price" type="number" step="0.01" min="0" required className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" placeholder="0.00" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--color-luxury-gold)] mb-1 font-bold">Cost Price *</label>
+              <input name="cost_price" type="number" step="0.01" min="0" required className="w-full px-4 py-2 border border-[var(--color-luxury-gold)]/40 rounded-md focus:ring-[var(--color-luxury-gold)] focus:border-[var(--color-luxury-gold)] outline-none bg-[var(--color-luxury-gold)]/5" placeholder="0.00" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
@@ -182,6 +188,18 @@ export default function AddProductPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Discount %</label>
               <input name="discount_percentage" type="number" step="1" min="0" max="100" defaultValue={0} placeholder="0" className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" />
             </div>
+          </div>
+
+          <div className="pt-4 border-t border-gray-100 flex items-center gap-3">
+            <input 
+              id="is_weekend_offer" 
+              name="is_weekend_offer" 
+              type="checkbox" 
+              className="w-5 h-5 rounded text-sky-600 focus:ring-sky-500 border-gray-300 transition-all cursor-pointer" 
+            />
+            <label htmlFor="is_weekend_offer" className="text-sm font-bold text-gray-800 cursor-pointer select-none">
+              Featured in Weekend Offers (Sky Blue Section)
+            </label>
           </div>
         </div>
 

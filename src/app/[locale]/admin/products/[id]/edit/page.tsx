@@ -14,6 +14,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [product, setProduct] = useState<any>(null);
+  const [variants, setVariants] = useState<any[]>([]); // New state for variants
   const [categories, setCategories] = useState<{slug: string, name_en: string}[]>([]);
   const supabase = createClient();
 
@@ -38,6 +39,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           allImages.push(...data.additional_images);
         }
         setImages(allImages);
+        // Load variants
+        if (data.variants && Array.isArray(data.variants)) {
+          setVariants(data.variants);
+        }
       } else if (error) {
         console.error('Error fetching product:', error);
         alert('Product not found.');
@@ -97,6 +102,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       name: formData.get('name') as string,
       brand: formData.get('brand') as string,
       price: parseFloat(formData.get('price') as string),
+      cost_price: parseFloat(formData.get('cost_price') as string) || 0,
       category: formData.get('category') as string,
       stock: parseInt(formData.get('stock') as string) || 0,
       discount_percentage: parseFloat(formData.get('discount_percentage') as string) || 0,
@@ -107,7 +113,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       usage_ar: formData.get('usage_ar') as string,
       image_url: images.length > 0 ? images[0] : null,
       additional_images: images.length > 1 ? images.slice(1) : [],
+      is_weekend_offer: formData.get('is_weekend_offer') === 'on',
       slug: formData.get('slug') as string,
+      variants: variants, // Include variants in update
     };
 
     const { error } = await supabase.from('products').update(updatedProduct).eq('id', productId);
@@ -138,18 +146,18 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           <h2 className="text-lg font-serif text-[var(--color-luxury-black)] border-b border-gray-100 pb-2">Basic Information</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
-              <input name="name" type="text" required defaultValue={product.name} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" />
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+              <input id="name" name="name" type="text" required defaultValue={product.name} placeholder="Enter product name (e.g. Luxury Silk Cream)" title="Product Name" className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL Slug *</label>
-              <input name="slug" type="text" required defaultValue={product.slug} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" />
+              <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">URL Slug *</label>
+              <input id="slug" name="slug" type="text" required defaultValue={product.slug} placeholder="e.g. magic-cream-v2" title="URL Slug" className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" />
               <p className="text-xs text-gray-500 mt-1">Used for the product URL: /shop/slug</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-                <input name="brand" type="text" defaultValue={product.brand} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" />
+                <label htmlFor="brand" className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+                <input id="brand" name="brand" type="text" defaultValue={product.brand} placeholder="e.g. Glossy Beauty" className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
@@ -162,8 +170,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea name="description" rows={4} defaultValue={product.description} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" />
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea id="description" name="description" rows={4} defaultValue={product.description} placeholder="Describe the product features and benefits..." className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -195,8 +203,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           <h2 className="text-lg font-serif text-[var(--color-luxury-black)] border-b border-gray-100 pb-2">Pricing & Inventory</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price (د.ل) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sale Price (د.ل) *</label>
               <input name="price" type="number" step="0.01" min="0" required defaultValue={product.price} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[var(--color-luxury-black)] focus:border-[var(--color-luxury-black)] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--color-luxury-gold)] mb-1 font-bold">Cost Price *</label>
+              <input name="cost_price" type="number" step="0.01" min="0" required defaultValue={product.cost_price || 0} className="w-full px-4 py-2 border border-[var(--color-luxury-gold)]/40 rounded-md focus:ring-[var(--color-luxury-gold)] focus:border-[var(--color-luxury-gold)] outline-none bg-[var(--color-luxury-gold)]/5" placeholder="0.00" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
@@ -209,6 +221,124 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 <p className="text-xs text-green-600 mt-1">Final price: {(product.price * (1 - (product.discount_percentage || 0) / 100)).toFixed(2)} د.ل</p>
               )}
             </div>
+          </div>
+
+          <div className="pt-4 border-t border-gray-100 flex items-center gap-3">
+            <input 
+              id="is_weekend_offer" 
+              name="is_weekend_offer" 
+              type="checkbox" 
+              defaultChecked={product.is_weekend_offer}
+              className="w-5 h-5 rounded text-sky-600 focus:ring-sky-500 border-gray-300 transition-all cursor-pointer" 
+            />
+            <label htmlFor="is_weekend_offer" className="text-sm font-bold text-gray-800 cursor-pointer select-none">
+              Featured in Weekend Offers (Sky Blue Section)
+            </label>
+          </div>
+        </div>
+
+        {/* Variants / Colors Section */}
+        <div className="bg-white p-6 md:p-8 border border-gray-200 shadow-sm rounded-lg space-y-6">
+          <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+            <h2 className="text-lg font-serif text-[var(--color-luxury-black)]">Product Variants / Colors</h2>
+            <button 
+              type="button" 
+              onClick={() => setVariants([...variants, { name_ar: '', name_en: '', hex: '#000000', image_url: '' }])}
+              className="text-xs bg-black text-white px-3 py-1.5 rounded-full hover:bg-[var(--color-gold-luxury)] transition-colors font-bold uppercase"
+            >
+              + Add Color
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            {variants.length === 0 ? (
+              <p className="text-sm text-gray-400 italic">No variants added. Use this for lenses, lipsticks, etc.</p>
+            ) : (
+              variants.map((v, idx) => (
+                <div key={idx} className="flex flex-col md:flex-row gap-4 p-4 bg-gray-50 rounded-lg border border-gray-100 relative group">
+                  <button 
+                    type="button" 
+                    onClick={() => setVariants(variants.filter((_, i) => i !== idx))}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-md hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Remove variant"
+                  >
+                    <X size={12} />
+                  </button>
+                  
+                  <div className="flex-grow grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Color Name (AR)</label>
+                      <input 
+                        type="text" 
+                        value={v.name_ar} 
+                        onChange={(e) => {
+                          const newV = [...variants];
+                          newV[idx].name_ar = e.target.value;
+                          setVariants(newV);
+                        }}
+                        dir="rtl"
+                        placeholder="مثلاً: أزرق سماوي"
+                        className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded focus:border-black outline-none font-arabic" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Color Name (EN)</label>
+                      <input 
+                        type="text" 
+                        value={v.name_en} 
+                        onChange={(e) => {
+                          const newV = [...variants];
+                          newV[idx].name_en = e.target.value;
+                          setVariants(newV);
+                        }}
+                        placeholder="e.g. Sky Blue"
+                        className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded focus:border-black outline-none" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Hex Code</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="color" 
+                          value={v.hex} 
+                          onChange={(e) => {
+                            const newV = [...variants];
+                            newV[idx].hex = e.target.value;
+                            setVariants(newV);
+                          }}
+                          className="w-8 h-8 p-0 border-none rounded-full cursor-pointer bg-transparent" 
+                        />
+                        <input 
+                          type="text" 
+                          value={v.hex} 
+                          onChange={(e) => {
+                            const newV = [...variants];
+                            newV[idx].hex = e.target.value;
+                            setVariants(newV);
+                          }}
+                          placeholder="#000000"
+                          className="flex-grow px-3 py-1.5 text-sm border border-gray-200 rounded focus:border-black outline-none font-mono" 
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Variant Image URL</label>
+                      <input 
+                        type="text" 
+                        value={v.image_url} 
+                        onChange={(e) => {
+                          const newV = [...variants];
+                          newV[idx].image_url = e.target.value;
+                          setVariants(newV);
+                        }}
+                        placeholder="https://..."
+                        className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded focus:border-black outline-none" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

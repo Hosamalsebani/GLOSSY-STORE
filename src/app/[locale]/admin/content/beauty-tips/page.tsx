@@ -14,12 +14,15 @@ type BeautyTip = {
   title_ar: string;
   content_en: string;
   content_ar: string;
+  category_id?: string;
   created_at?: string;
 };
 
 export default function AdminBeautyTipsPage() {
   const t = useTranslations('Admin.tips');
   const [tips, setTips] = useState<BeautyTip[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'all' | 'beauty' | 'mother-baby'>('all');
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [editingTip, setEditingTip] = useState<Partial<BeautyTip> | null>(null);
@@ -29,7 +32,13 @@ export default function AdminBeautyTipsPage() {
 
   useEffect(() => {
     fetchTips();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    const { data } = await supabase.from('categories').select('id, name_ar, name_en, slug');
+    if (data) setCategories(data);
+  };
 
   const fetchTips = async () => {
     try {
@@ -71,7 +80,8 @@ export default function AdminBeautyTipsPage() {
       content_en: '',
       content_ar: '',
       image_url: '',
-      video_url: ''
+      video_url: '',
+      category_id: ''
     });
     setShowForm(true);
   };
@@ -119,6 +129,7 @@ export default function AdminBeautyTipsPage() {
             content_ar: editingTip.content_ar,
             image_url: editingTip.image_url,
             video_url: editingTip.video_url,
+            category_id: editingTip.category_id || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingTip.id);
@@ -133,7 +144,8 @@ export default function AdminBeautyTipsPage() {
             content_en: editingTip.content_en,
             content_ar: editingTip.content_ar,
             image_url: editingTip.image_url,
-            video_url: editingTip.video_url
+            video_url: editingTip.video_url,
+            category_id: editingTip.category_id || null
           }]);
         if (error) throw error;
       }
@@ -165,7 +177,7 @@ export default function AdminBeautyTipsPage() {
           <p className="text-gray-500">{t('subtitle')}</p>
         </div>
         {!showForm && (
-          <button 
+            <button 
             onClick={handleAddNew}
             className="flex items-center gap-2 px-6 py-2 bg-[var(--color-luxury-black)] text-white hover:bg-gray-800 transition-colors font-medium shadow-sm"
           >
@@ -173,6 +185,29 @@ export default function AdminBeautyTipsPage() {
           </button>
         )}
       </div>
+
+      {!showForm && (
+        <div className="flex border-b border-gray-200">
+          <button 
+            onClick={() => setActiveTab('all')}
+            className={`px-6 py-3 text-sm font-medium transition-all border-b-2 ${activeTab === 'all' ? 'border-[var(--color-luxury-black)] text-[var(--color-luxury-black)]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            {t('all')}
+          </button>
+          <button 
+            onClick={() => setActiveTab('beauty')}
+            className={`px-6 py-3 text-sm font-medium transition-all border-b-2 ${activeTab === 'beauty' ? 'border-[var(--color-luxury-black)] text-[var(--color-luxury-black)]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            Beauty Tips
+          </button>
+          <button 
+            onClick={() => setActiveTab('mother-baby')}
+            className={`px-6 py-3 text-sm font-medium transition-all border-b-2 ${activeTab === 'mother-baby' ? 'border-[var(--color-luxury-black)] text-[var(--color-luxury-black)]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            Mother & Baby Tips
+          </button>
+        </div>
+      )}
 
       {showForm && editingTip && (
         <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
@@ -216,8 +251,23 @@ export default function AdminBeautyTipsPage() {
               </div>
 
               {/* Video URL Section */}
-              <div className="space-y-4">
-                <label className="block text-sm font-medium text-gray-700">Video URL (Optional - Reels Format)</label>
+                <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700">Display Category</label>
+                <select 
+                  className="w-full px-4 py-2 border border-gray-300 focus:ring-1 focus:ring-[var(--color-luxury-black)] outline-none bg-white"
+                  value={editingTip.category_id || ''}
+                  onChange={e => setEditingTip({...editingTip, category_id: e.target.value})}
+                >
+                  <option value="">General Beauty Tip</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name_ar} ({cat.name_en})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-gray-400">Selecting a category will show this tip in the specifically designed category page (like Mother & Baby).</p>
+                
+                <label className="block text-sm font-medium text-gray-700 pt-2">Video URL (Optional - Reels Format)</label>
                 <input 
                   type="text"
                   placeholder="Paste video URL here (mp4, youtube, etc.)"
@@ -297,7 +347,13 @@ export default function AdminBeautyTipsPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tips.map((tip) => (
+        {tips.filter(tip => {
+          if (activeTab === 'all') return true;
+          const mbCategory = categories.find(c => c.slug === 'mother-and-child');
+          if (activeTab === 'beauty') return !tip.category_id;
+          if (activeTab === 'mother-baby') return tip.category_id === mbCategory?.id;
+          return true;
+        }).map((tip) => (
           <div key={tip.id} className="bg-white border border-gray-200 flex flex-col group overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <div className="aspect-video relative overflow-hidden bg-gray-100">
               {tip.image_url && (

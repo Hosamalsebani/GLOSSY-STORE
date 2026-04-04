@@ -79,7 +79,7 @@ export default function VerifyEmailPage() {
   const handleVerify = async () => {
     const code = otp.join('');
     if (code.length !== 6) {
-      setError('Please enter the complete 6-digit code.');
+      setError(t('completeCode'));
       return;
     }
 
@@ -87,22 +87,31 @@ export default function VerifyEmailPage() {
     setError(null);
 
     try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email,
-        token: code,
-        type: 'email',
-      });
+      // Fetch the user's stored custom OTP
+      const { data: userData, error: fetchError } = await supabase
+        .from('users')
+        .select('id, custom_otp')
+        .eq('email', email)
+        .single();
 
-      if (verifyError) throw verifyError;
-
-      // Mark user as verified in our users table
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase
-          .from('users')
-          .update({ is_verified: true })
-          .eq('id', user.id);
+      if (fetchError || !userData) {
+         throw new Error('User not found or unable to verify.');
       }
+
+      if (userData.custom_otp !== code) {
+        throw new Error('رمز التحقق غير صحيح أو منتهي الصلاحية'); // Invalid OTP message
+      }
+
+      // Mark user as verified and clear the OTP
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ 
+           is_verified: true,
+           custom_otp: null // Clear OTP after successful use
+        })
+        .eq('id', userData.id);
+
+      if (updateError) throw updateError;
 
       setSuccess(true);
       sessionStorage.removeItem('verify_email');
@@ -112,7 +121,7 @@ export default function VerifyEmailPage() {
         router.push('/account');
       }, 2000);
     } catch (err: any) {
-      setError(err.message || 'Verification failed. Please check your code and try again.');
+      setError(err.message || t('verificationFailedFallback'));
     } finally {
       setIsVerifying(false);
     }
@@ -125,16 +134,34 @@ export default function VerifyEmailPage() {
     setError(null);
 
     try {
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
-        email,
+      // Generate a new 6-digit OTP
+      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Update the user's record with the new OTP
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ custom_otp: newOtp })
+        .eq('email', email);
+
+      if (updateError) throw updateError;
+
+      // Send the stylized OTP email via Resend
+      const emailRes = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          otp: newOtp
+        })
       });
 
-      if (resendError) throw resendError;
+      if (!emailRes.ok) {
+         throw new Error('Failed to send verification email');
+      }
 
       setResendCooldown(60);
     } catch (err: any) {
-      setError(err.message || 'Failed to resend code. Please try again.');
+      setError(err.message || t('resendFailed'));
     } finally {
       setIsResending(false);
     }
@@ -158,7 +185,7 @@ export default function VerifyEmailPage() {
             <CheckCircle2 className="w-10 h-10 text-[var(--color-rose-gold)]" />
           </div>
           <h2 className="text-3xl font-serif text-white">{t('verificationSuccess')}</h2>
-          <p className="text-white/60 text-sm font-light uppercase tracking-widest">Elegance is now yours</p>
+          <p className="text-white/60 text-sm font-light uppercase tracking-widest">{t('eleganceIsYours')}</p>
           <div className="flex justify-center">
             <Loader2 className="w-6 h-6 animate-spin text-[var(--color-rose-gold)]" />
           </div>
@@ -272,8 +299,8 @@ export default function VerifyEmailPage() {
           </div>
           
           <div className="mt-8 text-center">
-            <Link href="/register" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors">
-              <ArrowLeft size={12} /> Back to Register
+            <Link href="/register" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-colors">
+              <ArrowLeft size={12} /> {t('backToRegister')}
             </Link>
           </div>
         </div>

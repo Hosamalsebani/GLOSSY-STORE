@@ -23,20 +23,17 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Use service role client to bypass RLS for listing all users
-    const adminSupabase = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_KEY!
-    );
+    // Use standard authenticated client to fetch users
+
 
     // Fetch all non-admin users
-    const { data: users, error: usersError } = await adminSupabase
+    const { data: users, error: usersError } = await supabase
       .from('users')
       .select('id, email, full_name, phone_number, created_at, is_blocked')
       .neq('role', 'admin');
 
     // Fetch all orders to aggregate stats
-    const { data: orders, error: ordersError } = await adminSupabase
+    const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('customer_email, customer_name, customer_phone, total_amount, created_at');
 
@@ -132,13 +129,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Use service role client to bypass RLS
-    const adminSupabase = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_KEY!
-    );
-
-    const { error } = await adminSupabase
+    // Use standard authenticated client
+    const { error } = await supabase
       .from('users')
       .update({ is_blocked: isBlocked })
       .eq('id', userId);

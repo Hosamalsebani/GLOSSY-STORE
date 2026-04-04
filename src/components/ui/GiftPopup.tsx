@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Gift, TicketPercent, Copy, X, Check } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useLocale } from 'next-intl';
+import { usePathname } from 'next/navigation';
 
 export default function GiftPopup() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,12 +12,13 @@ export default function GiftPopup() {
   const [isVisible, setIsVisible] = useState(false);
   const [copied, setCopied] = useState(false);
   const locale = useLocale();
-  const supabase = createClient();
+  const pathname = usePathname() || '';
+  const supabaseRef = useRef(createClient());
+  const supabase = supabaseRef.current;
 
   useEffect(() => {
     async function fetchData() {
       try {
-        // Check settings first
         const { data: settings } = await supabase
           .from('store_settings')
           .select('show_coupon_announcement')
@@ -24,7 +26,6 @@ export default function GiftPopup() {
 
         if (!settings?.show_coupon_announcement) return;
 
-        // Fetch strongest coupon
         const { data: coupons } = await supabase
           .from('coupons')
           .select('*')
@@ -43,7 +44,8 @@ export default function GiftPopup() {
     }
 
     fetchData();
-  }, [supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const copyToClipboard = () => {
     if (!coupon) return;
@@ -52,7 +54,7 @@ export default function GiftPopup() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!isVisible || !coupon) {
+  if (!isVisible || !coupon || (!pathname.includes('/profile') && !pathname.includes('/account'))) {
     return <div id="gift-popup-placeholder" style={{ display: 'none' }} aria-hidden="true"></div>;
   }
 

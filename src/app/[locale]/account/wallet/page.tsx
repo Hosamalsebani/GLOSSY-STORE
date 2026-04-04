@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, Loader2, Calendar, History, ShieldCheck } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { getCurrencyUnit } from '@/utils/format';
+
 
 type Transaction = {
   id: string;
@@ -16,7 +18,9 @@ type Transaction = {
 
 export default function WalletPage() {
   const t = useTranslations('Wallet');
+  const locale = useLocale();
   const [balance, setBalance] = useState<number | null>(null);
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -85,7 +89,7 @@ export default function WalletPage() {
               <h1 className="text-5xl font-black gold-gradient-text">
                 {balance !== null ? balance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'}
               </h1>
-              <span className="text-sm font-bold text-white/30 uppercase tracking-widest">SAR</span>
+              <span className="text-sm font-bold text-white/30 uppercase tracking-widest">{getCurrencyUnit(locale)}</span>
             </div>
             
             <div className="mt-8 flex gap-3">
@@ -129,7 +133,7 @@ export default function WalletPage() {
                   <p className={`font-black text-lg ${tx.type === 'credit' ? 'text-green-600' : 'text-red-500'}`}>
                     {tx.type === 'credit' ? '+' : '-'}{tx.amount.toFixed(2)}
                   </p>
-                  <p className="text-[9px] font-bold text-slate-300 uppercase tracking-tighter">SAR</p>
+                  <p className="text-[9px] font-bold text-slate-300 uppercase tracking-tighter">{getCurrencyUnit(locale)}</p>
                 </div>
               </div>
             ))}

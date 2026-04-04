@@ -3,12 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ChevronRight, Zap } from 'lucide-react';
 
-export default function FlashSaleBar() {
+interface TimeLeft {
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+export default function FlashSaleBar({ isTopBar = false }: { isTopBar?: boolean }) {
   const locale = useLocale();
+  const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState({
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     hours: 23,
     minutes: 59,
     seconds: 59,
@@ -38,22 +46,26 @@ export default function FlashSaleBar() {
 
   if (!isMounted) return null;
 
-  const formatNumber = (num: number) => num.toString().padStart(2, '0');
+  // Logic to hide the bar ONLY if it's the top bar and we're on the home page.
+  // The home page path will be either "/" or "/[locale]"
+  const isHomePage = pathname === `/${locale}` || pathname === `/${locale}/` || pathname === '/';
+  
+  if (isHomePage && isTopBar) {
+    return null; // Don't show at the top for home page on any device
+  }
 
+  return <ActualBar locale={locale} timeLeft={timeLeft} />;
+}
+
+function ActualBar({ locale, timeLeft }: { locale: string, timeLeft: TimeLeft }) {
+  const formatNumber = (num: number) => num.toString().padStart(2, '0');
   const goldGradient = 'linear-gradient(90deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C)';
 
   return (
     <div 
       className="flash-sale-bar"
-      style={{ 
-        background: goldGradient,
-        backgroundImage: goldGradient,
-        backgroundColor: '#D4AF37' // Fallback
-      }}
     >
       <div className="container mx-auto px-4 flex items-center justify-between py-1 relative z-10">
-        
-        {/* Left: Compact Message */}
         <div className="flex items-center gap-2 md:gap-4 text-black">
           <Zap className="w-3 h-3 text-black fill-black" />
           <h2 className="promo-main font-bold">
@@ -61,7 +73,6 @@ export default function FlashSaleBar() {
           </h2>
         </div>
 
-        {/* Right: Inline Timer & Small Shop Button */}
         <div className="flex items-center gap-3 md:gap-8 text-black">
           <div className="timer-inline">
             <span className="num">{formatNumber(timeLeft.hours)}</span>
@@ -86,10 +97,12 @@ export default function FlashSaleBar() {
           box-shadow: 0 2px 10px rgba(0,0,0,0.2);
           border-bottom: 2px solid rgba(0,0,0,0.1);
           width: 100%;
-          z-index: 9999;
+          z-index: 1000;
           min-height: 35px;
           display: flex;
           align-items: center;
+          background: linear-gradient(90deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+          background-color: #D4AF37;
         }
 
         .promo-main {

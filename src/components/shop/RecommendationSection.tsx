@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ShoppingBag, Plus, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Eye } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { createClient } from '@/utils/supabase/client';
 import { useAppStore } from '@/store';
 import { Product } from '@/types';
 import { useTranslations, useLocale } from 'next-intl';
+import Image from 'next/image';
 import QuickViewModal from './QuickViewModal';
 
 interface RecommendationSectionProps {
@@ -38,11 +39,14 @@ export default function RecommendationSection({
         let recommendedProducts: Product[] = [];
 
         // 1. Try to fetch products based on recently viewed IDs
-        if (recentlyViewedIds.length > 0) {
+        const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+        const validRecentlyViewedIds = recentlyViewedIds.filter(isUUID);
+
+        if (validRecentlyViewedIds.length > 0) {
           const { data, error } = await supabase
             .from('products')
             .select('*')
-            .in('id', recentlyViewedIds.slice(0, 6))
+            .in('id', validRecentlyViewedIds.slice(0, 6))
             .filter('id', 'neq', excludeProductId || '');
 
           if (!error && data) {
@@ -135,7 +139,7 @@ export default function RecommendationSection({
 
         <div 
           ref={scrollRef} 
-          className="flex gap-4 md:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar"
+          className="flex gap-4 md:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
         >
           {loading ? (
             [...Array(4)].map((_, i) => (
@@ -150,22 +154,24 @@ export default function RecommendationSection({
               <div key={product.id} className="min-w-[200px] md:min-w-[300px] snap-start group">
                 <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-white mb-4 shadow-sm group-hover:shadow-md transition-all duration-300">
                   <Link href={`/shop/${product.id}`} className="block h-full relative group-image-container">
-                    <img
+                    <Image
                       src={product.image_url || (product.images && product.images.length > 0 ? product.images[0] : '')}
                       alt={product.name}
-                      className="w-full h-full object-cover transform transition-all duration-700 ease-in-out group-hover:scale-105 group-hover:opacity-0"
+                      fill
+                      className="object-cover transform transition-all duration-700 ease-in-out group-hover:scale-105 group-hover:opacity-0"
                     />
                     
                     {/* Secondary Image on Hover */}
                     {(product.additional_images && product.additional_images.length > 0 || product.images && product.images.length > 1) && (
-                      <img 
+                      <Image 
                         src={
                           (product.additional_images && product.additional_images.length > 0) 
                             ? product.additional_images[0] 
                             : (product.images && product.images.length > 1 ? product.images[1] : '')
                         } 
                         alt={`${product.name} alternate`}
-                        className="absolute inset-0 object-cover w-full h-full opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-in-out"
+                        fill
+                        className="object-cover opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-in-out"
                       />
                     )}
                     
@@ -211,7 +217,7 @@ export default function RecommendationSection({
                 <Link href={`/shop/${product.id}`} className="block">
                   <div>
                     <h3 className={`text-sm md:text-base font-semibold text-gray-800 mb-1 truncate ${isRtl ? 'font-arabic' : ''}`}>
-                      {isRtl && (product as any).name_ar ? (product as any).name_ar : product.name}
+                      {isRtl && product.name_ar ? product.name_ar : product.name}
                     </h3>
                     <p className={`text-[var(--color-rose-gold)] font-bold ${isRtl ? 'text-left' : 'text-right'}`}>${product.price.toFixed(2)}</p>
                   </div>
@@ -221,16 +227,6 @@ export default function RecommendationSection({
           )}
         </div>
       </div>
-      
-      <style jsx>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </section>
 
     <QuickViewModal product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
