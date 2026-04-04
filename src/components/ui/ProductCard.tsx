@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Plus, Minus, Star, Eye } from 'lucide-react';
 import { Link } from '@/i18n/routing';
+import Image from 'next/image';
 import { useAppStore } from '@/store';
 import { Product } from '@/types';
 import { useTranslations, useLocale } from 'next-intl';
@@ -40,10 +41,13 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         
         {/* Image wrapped in explicit Link for proper click hit-box isolation */}
         <Link href={`/shop/${product.id}`} className="absolute inset-0 z-0 flex items-center justify-center p-4">
-          <img
+          <Image
             src={product.image_url || product.images?.[0] || '/images/placeholder-product.png'}
             alt={product.name}
-            className="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110"
+            fill
+            sizes="(max-width: 640px) 45vw, (max-width: 768px) 33vw, 200px"
+            loading="lazy"
+            className="object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 p-4"
           />
         </Link>
 

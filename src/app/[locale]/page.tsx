@@ -1,6 +1,7 @@
 import { Fragment, Suspense } from 'react';
 import { getLocale } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
+import Image from 'next/image';
 import HeroBanner from '@/components/home/HeroBanner';
 import CategoryGrid from '@/components/home/CategoryGrid';
 import TrendingProducts from '@/components/home/TrendingProducts';
@@ -63,6 +64,7 @@ function HomeSkeleton() {
 
 async function HomePayload({ locale }: { locale: string }) {
   const supabase = await createClient();
+  const isAr = locale === 'ar';
 
   // Fetch both queries in parallel — cuts load time in half
   const [slidersResult, categoriesResult] = await Promise.all([
@@ -91,6 +93,13 @@ async function HomePayload({ locale }: { locale: string }) {
 
   return (
     <>
+      {/* SEO H1 - Visually styled but still the page's main heading */}
+      <h1 className="sr-only">
+        {isAr
+          ? 'جلوسي - متجر مستحضرات التجميل والعناية بالبشرة الفاخرة في ليبيا'
+          : 'Glossy - Premium Beauty & Skincare Store in Libya'}
+      </h1>
+
       {/* 1. Hero Sliders - Full Bleed */}
       <HeroBanner initialSlides={initialSlides} locale={locale} />
 
@@ -111,12 +120,19 @@ async function HomePayload({ locale }: { locale: string }) {
       {/* Luxury Perfume Section - Auto-scroll brands + Dynamic Banner */}
       <PerfumeBanner />
 
-      {/* Dynamic Promo Squares (Hardcoded for stability) */}
+      {/* Dynamic Promo Squares */}
       <div className="container mx-auto px-4 py-3 max-w-7xl">
         <div className="flex gap-2 mx-auto justify-center">
           {DEFAULT_SQUARES.map((sq, i) => (
             <Link key={i} href={sq.link as any} className="relative flex-1 max-w-[250px] aspect-[4/3] rounded-2xl overflow-hidden group shadow-sm border border-gray-100">
-               <img src={sq.image} alt={sq.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110" />
+               <Image
+                 src={sq.image}
+                 alt={isAr ? sq.labelAr : sq.labelEn}
+                 fill
+                 sizes="(max-width: 640px) 50vw, 250px"
+                 className="object-cover transition-transform duration-700 md:group-hover:scale-110"
+                 loading="lazy"
+               />
                <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-colors duration-500" />
             </Link>
           ))}
@@ -152,6 +168,40 @@ async function HomePayload({ locale }: { locale: string }) {
       <Suspense fallback={<SectionSkeleton />}>
         <WeekendOffers />
       </Suspense>
+
+      {/* SEO Content Section - Arabic Rich Text for Google */}
+      <section className="bg-[#fdf8f8] border-t border-gray-100">
+        <div className="container mx-auto px-4 py-10 max-w-4xl">
+          <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
+            {isAr ? 'مرحباً بكِ في جلوسي' : 'Welcome to Glossy'}
+          </h2>
+          {isAr ? (
+            <div className="text-sm leading-7 text-gray-600 space-y-3 text-right">
+              <p>
+                <strong>جلوسي</strong> هو وجهتكِ المثالية لمستحضرات التجميل والعناية بالبشرة الفاخرة في ليبيا. نقدم لكِ مجموعة واسعة ومتنوعة من أفضل الماركات العالمية في عالم الجمال، بدءاً من المكياج الاحترافي ومروراً بالعطور الفاخرة ومنتجات العناية بالبشرة والشعر، وصولاً إلى مستحضرات العناية الشخصية ومنتجات الأم والطفل.
+              </p>
+              <p>
+                نحرص في جلوسي على انتقاء المنتجات الأصلية 100% من أشهر العلامات التجارية العالمية مثل MAC، وشارلوت تيلبوري، وهدى بيوتي، ومايبيلين، وغيرها الكثير. هدفنا هو أن نوفر لكِ تجربة تسوق فاخرة ومريحة من منزلك مع ضمان أعلى معايير الجودة والأمان.
+              </p>
+              <p>
+                نوفر خدمة <strong>الشحن السريع</strong> لجميع مدن ليبيا، بما في ذلك طرابلس وبنغازي ومصراتة والزاوية وسبها وغيرها. كما نقدم <strong>عروض حصرية</strong> وخصومات يومية تصل إلى 60% على منتجات مختارة، بالإضافة إلى صناديق المفاجآت الشهرية التي تمنحكِ منتجات فاخرة بأسعار مذهلة.
+              </p>
+              <p>
+                سواء كنتِ تبحثين عن أحمر شفاه مثالي، أو كريم مرطب للبشرة، أو عطر فاخر يدوم طويلاً، ستجدين في جلوسي كل ما تحتاجينه لإطلالة مثالية. انضمي إلى آلاف العملاء السعداء واستمتعي بتجربة تسوق لا مثيل لها!
+              </p>
+            </div>
+          ) : (
+            <div className="text-sm leading-7 text-gray-600 space-y-3">
+              <p>
+                <strong>Glossy</strong> is your premier destination for luxury beauty and skincare in Libya. We offer an extensive collection of world-renowned brands spanning professional makeup, luxury perfumes, skincare essentials, hair care, and personal care products.
+              </p>
+              <p>
+                We provide <strong>fast shipping</strong> to all cities across Libya, exclusive daily deals up to 60% off, and monthly mystery boxes. Join thousands of happy customers and discover your perfect beauty routine with Glossy.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Buffer for bottom nav */}
       <div className="h-20 lg:h-0" />

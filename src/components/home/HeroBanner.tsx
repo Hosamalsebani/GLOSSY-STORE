@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from '@/i18n/routing';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 type Slide = {
   id: string;
@@ -23,7 +23,6 @@ export default function HeroBanner({
   const [slides, setSlides] = useState<Slide[]>(initialSlides);
 
   useEffect(() => {
-    // Only update if initialSlides changes and is not empty
     if (initialSlides.length > 0) {
       setSlides(initialSlides);
     }
@@ -38,26 +37,26 @@ export default function HeroBanner({
   }, [slides.length]);
 
   const goTo = useCallback((index: number) => setCurrent(index), []);
-  const prev = useCallback(() => setCurrent(c => (c - 1 + slides.length) % slides.length), [slides.length]);
-  const next = useCallback(() => setCurrent(c => (c + 1) % slides.length), [slides.length]);
-
-
 
   if (!slides || slides.length === 0) return null;
 
   return (
     <div className="relative w-full bg-white overflow-hidden">
-      {/* Main Banner - Full width on Mobile, Container on Desktop */}
+      {/* Main Banner */}
       <div className="md:container md:mx-auto md:px-6">
         <div className="relative overflow-hidden md:rounded-[20px] md:mt-4 shadow-sm group">
           <Link href={slides[current]?.link || '/shop'} className="block">
             <div className="relative w-full aspect-square sm:aspect-[16/9] md:aspect-[21/9] lg:aspect-[3/1] bg-[#f9f9f9]">
               {slides.map((slide, index) => (
-                <img
+                <Image
                   key={slide.id}
                   src={slide.image}
-                  alt={slide.title || 'Banner'}
-                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+                  alt={slide.title || 'Glossy Beauty Banner'}
+                  fill
+                  sizes="100vw"
+                  priority={index === 0}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  className={`object-cover transition-opacity duration-700 ${
                     index === current ? 'opacity-100' : 'opacity-0'
                   }`}
                 />
@@ -65,7 +64,7 @@ export default function HeroBanner({
             </div>
           </Link>
 
-          {/* Dots - Minimalist style matching NiceOne */}
+          {/* Dots */}
           {slides.length > 1 && (
             <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-1.5">
               {slides.map((_, index) => (
